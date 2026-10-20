@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IS-LM interativo</title>
+<style>
+:root{--bg:#fbfbf9;--fg:#1f2328;--mut:#5f6670;--line:#d8dbe0;--is:#5b4fc7;--lm:#c4491f;--card:#fff}
+@media(prefers-color-scheme:dark){:root{--bg:#16181c;--fg:#e8eaed;--mut:#9aa1ab;--line:#33373e;--is:#9d94f0;--lm:#f08a63;--card:#1d2025}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1080px;margin:0 auto;padding:24px 16px;display:grid;gap:24px;grid-template-columns:minmax(0,1.6fr) minmax(260px,1fr)}
+@media(max-width:800px){main{grid-template-columns:1fr}}
+h1{font-size:22px;margin:0 0 4px}
+h2{font-size:15px;margin:16px 0 6px}
+p{margin:0;color:var(--mut);font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 16px;margin:12px 0}
+.row{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:8px;font-size:14px;margin:8px 0}
+.row input{grid-column:1/3;width:100%}
+output{font-variant-numeric:tabular-nums;color:var(--mut)}
+button{font:inherit;font-size:14px;padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--fg);cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--is);outline-offset:2px}
+svg text{fill:var(--fg);font-size:13px}
+.ax{stroke:var(--mut)}
+.grid{stroke:var(--line);stroke-width:.5}
+.is{stroke:var(--is);stroke-width:2.5}
+.lm{stroke:var(--lm);stroke-width:2.5}
+.d{stroke-dasharray:5 4;opacity:.6;stroke-width:1.5}
+#e0{fill:none;stroke:var(--mut);stroke-width:1.5}
+#e1{fill:var(--fg)}
+</style>
+</head>
+<body>
+<main>
+<section>
+<h1>IS-LM</h1>
+<p>Mexa nos controles. As curvas tracejadas são o ponto de partida e as sólidas, o resultado.</p>
+<div class="card" id="res"></div>
+<svg viewBox="0 0 680 364" width="100%" role="img" aria-label="Gráfico IS-LM com renda Y no eixo horizontal e juros r no eixo vertical">
+<defs><clipPath id="c"><rect x="60" y="20" width="590" height="300"/></clipPath></defs>
+<g id="ticks"></g>
+<line x1="60" y1="320" x2="650" y2="320" class="ax"/>
+<line x1="60" y1="20" x2="60" y2="320" class="ax"/>
+<text x="650" y="358" text-anchor="end">Y (renda)</text>
+<text x="64" y="14">r (juros, %)</text>
+<g clip-path="url(#c)" fill="none">
+<line id="is0" class="is d"/><line id="lm0" class="lm d"/>
+<line id="is1" class="is"/><line id="lm1" class="lm"/>
+</g>
+<text id="tis0">IS</text><text id="tlm0">LM</text>
+<text id="tis1">IS′</text><text id="tlm1">LM′</text>
+<circle id="e0" r="4"/><circle id="e1" r="4.5"/>
+<text id="te0" text-anchor="end">E0</text><text id="te1">E1</text>
+</svg>
+</section>
+<aside>
+<div id="ctl"></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px">
+<button id="fix">Fixar ponto de partida</button>
+<button id="rst">Restaurar padrão</button>
+</div>
+</aside>
+</main>
+<script>
+const CFG=[["Mercado de bens (IS)"],
+["G","Gastos do governo (G)",0,500,5,200],
+["Tx","Impostos (T)",0,300,5,100],
+["c0","Consumo autônomo (c0)",0,300,5,100],
+["c1","Propensão marginal a consumir (c1)",0.3,0.9,0.05,0.6],
+["I0","Investimento autônomo (I0)",100,400,5,260],
+["b","Sensibilidade do investimento aos juros (b)",5,50,1,20],
+["Mercado monetário (LM)"],
+["M","Oferta de moeda (M)",100,500,5,250],
+["P","Nível de preços (P)",0.5,2,0.05,1],
+["k","Demanda por moeda: sensibilidade à renda (k)",0.2,1,0.05,0.5],
+["h","Demanda por moeda: sensibilidade aos juros (h)",10,100,1,50]];
+const $=i=>document.getElementById(i);
+const def={},ids=[];let html="";
+for(const c of CFG){
+  if(c.length==1){html+=`<h2>${c[0]}</h2>`;continue}
+  const [id,l,mn,mx,st,d]=c;def[id]=d;ids.push(id);
+  html+=`<div class="row"><label for="${id}">${l}</label><output id="o_${id}"></output><input type="range" id="${id}" min="${mn}" max="${mx}" step="${st}" value="${d}"></div>`;
+}
+$("ctl").innerHTML=html;
+const X0=60,X1=650,T0=20,B0=320,YMIN=300,YMAX=1700,RMAX=10;
+const px=y=>X0+(y-YMIN)/(YMAX-YMIN)*(X1-X0),py=r=>B0-r/RMAX*(B0-T0);
+let t="";
+for(let r=0;r<=10;r+=2)t+=`<line x1="${X0}" x2="${X1}" y1="${py(r)}" y2="${py(r)}" class="grid"/><text x="52" y="${py(r)+4}" text-anchor="end">${r}</text>`;
+for(let y=400;y<=1600;y+=200)t+=`<text x="${px(y)}" y="338" text-anchor="middle">${y}</text>`;
+$("ticks").innerHTML=t;
+let base={...def};
+const read=()=>Object.fromEntries(ids.map(i=>[i,+$(i).value]));
+const calc=p=>{const A=p.c0-p.c1*p.Tx+p.I0+p.G,m=1-p.c1,Mr=p.M/p.P,r=(p.k*A-m*Mr)/(p.k*p.b+m*p.h);return{A,m,Mr,r,Y:(A-p.b*r)/m,b:p.b,k:p.k,h:p.h}};
+const seg=(id,f)=>{const e=$(id);e.setAttribute("x1",px(YMIN));e.setAttribute("y1",py(f(YMIN)));e.setAttribute("x2",px(YMAX));e.setAttribute("y2",py(f(YMAX)))};
+const lab=(id,Y,r,show)=>{const e=$(id),x=px(Y);e.setAttribute("x",x+6);e.setAttribute("y",py(r)+4);e.style.display=show&&x>X0+6&&x<X1-28?"":"none"};
+const fy=v=>Math.round(v).toLocaleString("pt-BR"),fr=v=>v.toFixed(1).replace(".",",")+"%";
+const dir=(d,tol)=>Math.abs(d)<tol?"não muda":d>0?"sobe":"cai";
+const mov=(d,n,g)=>`${n}: ${Math.abs(d)<.5?"sem mudança":d>0?"vai para a direita":"vai para a esquerda"}${g?" e gira":""}`;
+function render(){
+  const cur=read(),a=calc(base),b=calc(cur);
+  ids.forEach(i=>$("o_"+i).textContent=cur[i]);
+  seg("is0",Y=>(a.A-a.m*Y)/a.b);seg("lm0",Y=>(a.k*Y-a.Mr)/a.h);
+  seg("is1",Y=>(b.A-b.m*Y)/b.b);seg("lm1",Y=>(b.k*Y-b.Mr)/b.h);
+  const isC=Math.abs(b.A-a.A)>1e-9||Math.abs(b.m-a.m)>1e-9||b.b!==a.b;
+  const lmC=Math.abs(b.Mr-a.Mr)>1e-9||b.k!==a.k||b.h!==a.h;
+  $("is1").style.display=isC?"":"none";$("lm1").style.display=lmC?"":"none";
+  lab("tis0",(a.A-a.b*9.2)/a.m,9.2,true);lab("tlm0",(a.Mr+a.h*9.2)/a.k,9.2,true);
+  lab("tis1",(b.A-b.b*7.4)/b.m,7.4,isC);lab("tlm1",(b.Mr+b.h*7.4)/b.k,7.4,lmC);
+  const x0=px(a.Y),y0=py(a.r),x1=px(b.Y),y1=py(b.r),mv=isC||lmC;
+  $("e0").setAttribute("cx",x0);$("e0").setAttribute("cy",y0);
+  $("te0").setAttribute("x",x0-8);$("te0").setAttribute("y",y0+16);
+  $("e1").setAttribute("cx",x1);$("e1").setAttribute("cy",y1);
+  $("te1").setAttribute("x",x1+8);$("te1").setAttribute("y",y1-8);
+  $("e1").style.display=$("te1").style.display=mv?"":"none";
+  const dI=(b.A-5*b.b)/b.m-(a.A-5*a.b)/a.m,dL=(b.Mr+5*b.h)/b.k-(a.Mr+5*a.h)/a.k;
+  $("res").innerHTML=`<div>Renda (Y): <b>${fy(a.Y)}</b> → <b>${fy(b.Y)}</b> (${dir(b.Y-a.Y,.5)})</div>
+<div>Juros (r): <b>${fr(a.r)}</b> → <b>${fr(b.r)}</b> (${dir(b.r-a.r,.05)})</div>
+<p>${mov(dI,"IS",Math.abs(b.m-a.m)>1e-9)} · ${mov(dL,"LM",b.k!==a.k)}</p>`;
+}
+ids.forEach(i=>$(i).addEventListener("input",render));
+$("fix").onclick=()=>{base=read();render()};
+$("rst").onclick=()=>{ids.forEach(i=>$(i).value=def[i]);base={...def};render()};
+render();
+</script>
+</body>
+</html>

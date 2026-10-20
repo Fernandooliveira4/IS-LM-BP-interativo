@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IS-LM-BP interativo</title>
+<style>
+:root{--bg:#fbfbf9;--fg:#1f2328;--mut:#5f6670;--line:#d8dbe0;--is:#5b4fc7;--lm:#c4491f;--bp:#17805a;--card:#fff;--sel:#eceaf9}
+@media(prefers-color-scheme:dark){:root{--bg:#16181c;--fg:#e8eaed;--mut:#9aa1ab;--line:#33373e;--is:#9d94f0;--lm:#f08a63;--bp:#55c793;--card:#1d2025;--sel:#2c2a48}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1080px;margin:0 auto;padding:24px 16px;display:grid;gap:24px;grid-template-columns:minmax(0,1.6fr) minmax(260px,1fr)}
+@media(max-width:800px){main{grid-template-columns:1fr}}
+h1{font-size:22px;margin:0 0 4px}
+h2{font-size:15px;margin:16px 0 6px}
+p{margin:0;color:var(--mut);font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 16px;margin:12px 0}
+.card p{margin-top:6px}
+.row{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:8px;font-size:14px;margin:8px 0}
+.row input{grid-column:1/3;width:100%}
+input[type=range]:disabled{opacity:.35}
+output{font-variant-numeric:tabular-nums;color:var(--mut)}
+button{font:inherit;font-size:14px;padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--fg);cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--is);outline-offset:2px}
+.seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--card)}
+.seg label{position:relative;flex:1;text-align:center;font-size:13px;padding:6px 4px;cursor:pointer;border-left:1px solid var(--line)}
+.seg label:first-child{border-left:0}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked){background:var(--sel);font-weight:600}
+.seg label:has(input:focus-visible){outline:2px solid var(--is);outline-offset:-2px}
+.note{font-size:13px;margin-top:6px}
+.leg{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:13px;color:var(--mut)}
+.leg svg{vertical-align:middle;margin-right:4px}
+.leg line{stroke:var(--fg)}
+svg text{fill:var(--fg);font-size:13px}
+.ax{stroke:var(--mut)}
+.grid{stroke:var(--line);stroke-width:.5}
+.is{stroke:var(--is);stroke-width:2.5}
+.lm{stroke:var(--lm);stroke-width:2.5}
+.bp{stroke:var(--bp);stroke-width:2.5}
+.d{stroke-dasharray:5 4;opacity:.6;stroke-width:1.5}
+.i{stroke-dasharray:1 5;stroke-linecap:round;opacity:.9}
+#e0{fill:none;stroke:var(--mut);stroke-width:1.5}
+#ei{fill:var(--card);stroke:var(--fg);stroke-width:1.5}
+#e1{fill:var(--fg)}
+</style>
+</head>
+<body>
+<main>
+<section>
+<h1 id="ttl">IS-LM-BP</h1>
+<p id="hint"></p>
+<div class="card" id="res"></div>
+<svg viewBox="0 0 680 364" width="100%" role="img" aria-label="Gráfico IS-LM-BP com renda Y no eixo horizontal e juros r no eixo vertical">
+<defs><clipPath id="c"><rect x="60" y="20" width="590" height="300"/></clipPath></defs>
+<g id="ticks"></g>
+<line x1="60" y1="320" x2="650" y2="320" class="ax"/>
+<line x1="60" y1="20" x2="60" y2="320" class="ax"/>
+<text x="650" y="358" text-anchor="end">Y (renda)</text>
+<text x="64" y="14">r (juros, %)</text>
+<g clip-path="url(#c)" fill="none">
+<line id="is0" class="is d"/><line id="lm0" class="lm d"/><line id="bp0" class="bp d"/>
+<line id="iis" class="is i"/><line id="ilm" class="lm i"/><line id="ibp" class="bp i"/>
+<line id="is1" class="is"/><line id="lm1" class="lm"/><line id="bp1" class="bp"/>
+</g>
+<text id="tis0">IS</text><text id="tlm0">LM</text><text id="tbp0">BP</text>
+<text id="tis1">IS′</text><text id="tlm1">LM′</text><text id="tbp1">BP′</text>
+<circle id="e0" r="4"/><circle id="ei" r="4"/><circle id="e1" r="4.5"/>
+<text id="te0" text-anchor="end">E0</text><text id="tei">E′</text><text id="te1">E1</text>
+</svg>
+<div class="leg">
+<span><svg width="28" height="8"><line x1="0" y1="4" x2="28" y2="4" class="d"/></svg>ponto de partida</span>
+<span id="legi"><svg width="28" height="8"><line x1="2" y1="4" x2="28" y2="4" class="i" stroke-width="2.5"/></svg>impacto, antes do ajuste (E′)</span>
+<span><svg width="28" height="8"><line x1="0" y1="4" x2="28" y2="4" stroke-width="2.5"/></svg>resultado</span>
+</div>
+</section>
+<aside>
+<h2 id="h_mode">Economia</h2>
+<div class="seg" role="radiogroup" aria-labelledby="h_mode">
+<label><input type="radio" name="mode" value="f">Fechada (IS-LM)</label>
+<label><input type="radio" name="mode" value="a" checked>Aberta (IS-LM-BP)</label>
+</div>
+<div id="oreg">
+<h2 id="h_reg">Regime cambial</h2>
+<div class="seg" role="radiogroup" aria-labelledby="h_reg">
+<label><input type="radio" name="reg" value="none">Sem ajuste</label>
+<label><input type="radio" name="reg" value="flu" checked>Flutuante</label>
+<label><input type="radio" name="reg" value="fix">Fixo</label>
+</div>
+<p class="note" id="regnote"></p>
+<h2 id="h_mob">Mobilidade de capital</h2>
+<div class="seg" role="radiogroup" aria-labelledby="h_mob">
+<label><input type="radio" name="mob" value="nula">Nula</label>
+<label><input type="radio" name="mob" value="baixa">Baixa</label>
+<label><input type="radio" name="mob" value="alta" checked>Alta</label>
+<label><input type="radio" name="mob" value="perfeita">Perfeita</label>
+</div>
+<p class="note" id="mobnote"></p>
+</div>
+<div id="ctl"></div>
+<div id="octl"></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px">
+<button id="fix">Fixar ponto de partida</button>
+<button id="rst">Restaurar padrão</button>
+</div>
+</aside>
+</main>
+<script>
+const CFG=[["Mercado de bens (IS)"],
+["G","Gastos do governo (G)",0,500,5,200],
+["Tx","Impostos (T)",0,300,5,100],
+["c0","Consumo autônomo (c0)",0,300,5,100],
+["c1","Propensão marginal a consumir (c1)",0.3,0.9,0.05,0.6],
+["I0","Investimento autônomo (I0)",100,400,5,260],
+["b","Sensibilidade do investimento aos juros (b)",5,50,1,20],
+["Mercado monetário (LM)"],
+["M","Oferta de moeda (M)",100,500,1,250],
+["P","Nível de preços (P)",0.5,2,0.05,1],
+["k","Demanda por moeda: sensibilidade à renda (k)",0.2,1,0.05,0.5],
+["h","Demanda por moeda: sensibilidade aos juros (h)",10,100,1,50]];
+const OCFG=[["Setor externo (BP)"],
+["X0","Exportações líquidas autônomas (X0)",-200,200,5,-100],
+["x","Sensibilidade das exportações líquidas ao câmbio (x)",50,400,10,200],
+["mi","Propensão marginal a importar (m)",0.02,0.3,0.01,0.1],
+["E","Câmbio nominal (E; sobe = moeda doméstica desvaloriza)",0.5,2,0.01,1],
+["Ps","Preços externos (P*)",0.5,2,0.05,1],
+["rs","Juros internacionais (r*, %)",0,10,0.25,5]];
+const MOB={nula:0,baixa:4,alta:40,perfeita:Infinity};
+const $=i=>document.getElementById(i);
+const def={mob:"alta"},ids=[],lim={};
+const build=cfg=>{let h="";for(const c of cfg){
+  if(c.length==1){h+=`<h2>${c[0]}</h2>`;continue}
+  const [id,l,mn,mx,st,d]=c;def[id]=d;ids.push(id);lim[id]=[mn,mx];
+  h+=`<div class="row"><label for="${id}">${l}</label><output id="o_${id}"></output><input type="range" id="${id}" min="${mn}" max="${mx}" step="${st}" value="${d}"></div>`;
+}return h};
+$("ctl").innerHTML=build(CFG);$("octl").innerHTML=build(OCFG);
+const X0=60,X1=650,T0=20,B0=320,YMIN=300,YMAX=1700,RMAX=10;
+const px=y=>X0+(y-YMIN)/(YMAX-YMIN)*(X1-X0),py=r=>B0-r/RMAX*(B0-T0);
+let t="";
+for(let r=0;r<=10;r+=2)t+=`<line x1="${X0}" x2="${X1}" y1="${py(r)}" y2="${py(r)}" class="grid"/><text x="52" y="${py(r)+4}" text-anchor="end">${r}</text>`;
+for(let y=400;y<=1600;y+=200)t+=`<text x="${px(y)}" y="338" text-anchor="middle">${y}</text>`;
+$("ticks").innerHTML=t;
+let base={...def};
+const rv=n=>document.querySelector(`input[name=${n}]:checked`).value;
+const read=()=>({...Object.fromEntries(ids.map(i=>[i,+$(i).value])),mob:rv("mob")});
+
+// Modelo. IS: Y = c0 + c1(Y-T) + I0 - b·r + G + NX, com NX = X0 + x·ε - m·Y e ε = E·P*/P
+// LM: M/P = kY - h·r.  BP: NX + f·(r - r*) = 0
+const core=(p,open)=>({A:p.c0-p.c1*p.Tx+p.I0+p.G,m0:1-p.c1,mi:open?p.mi:0,X0:open?p.X0:0,x:open?p.x:0,b:p.b,k:p.k,h:p.h,f:MOB[p.mob],rs:p.rs,P:p.P,Ps:p.Ps});
+const st=(c,eps,Mr,Y,r)=>({c,eps,Mr,Y,r,NX:c.X0+c.x*eps-c.mi*Y,M:Mr*c.P,E:eps*c.P/c.Ps});
+// interseção IS∩LM com câmbio e moeda dados
+const isect=(c,eps,Mr)=>{const Ao=c.A+c.X0+c.x*eps,m=c.m0+c.mi,r=(c.k*Ao-m*Mr)/(c.k*c.b+m*c.h);return st(c,eps,Mr,(Ao-c.b*r)/m,r)};
+// câmbio flutuante: ε se ajusta até zerar o BP
+const flo=(c,Mr)=>{let Y,r;
+  if(c.f===Infinity){r=c.rs;Y=(c.h*r+Mr)/c.k}
+  else{Y=(c.h*(c.A+c.f*c.rs)+(c.b+c.f)*Mr)/(c.m0*c.h+(c.b+c.f)*c.k);r=(c.k*Y-Mr)/c.h}
+  return st(c,(Y*(c.m0+c.mi)-c.A-c.X0+c.b*r)/c.x,Mr,Y,r)};
+// câmbio fixo: M se ajusta (BC compra/vende divisas) até zerar o BP
+const fixq=(c,eps)=>{const Z=c.X0+c.x*eps,Ao=c.A+Z,m=c.m0+c.mi;
+  const Y=c.f===Infinity?(Ao-c.b*c.rs)/m:(c.f*(Ao-c.b*c.rs)+c.b*Z)/(c.f*m+c.b*c.mi),r=(Ao-m*Y)/c.b;
+  return st(c,eps,c.k*Y-c.h*r,Y,r)};
+function solve(bp,cp,open,R){
+  bp={...bp,mob:cp.mob}; // mobilidade é estrutural, como o regime: trocar compara o mesmo choque
+  const cb=core(bp,open),cc=core(cp,open),eB=bp.E*bp.Ps/bp.P,eC=cp.E*cp.Ps/cp.P;
+  if(R=="none")return{a:isect(cb,eB,bp.M/bp.P),i:null,b:isect(cc,eC,cp.M/cp.P)};
+  if(R=="flu"){const a=flo(cb,bp.M/bp.P);return{a,i:isect(cc,a.E*cp.Ps/cp.P,cp.M/cp.P),b:flo(cc,cp.M/cp.P)}}
+  const a=fixq(cb,eB);return{a,i:isect(cc,eC,(a.M+cp.M-bp.M)/cp.P),b:fixq(cc,eC)};
+}
+// curvas: {f:Y=>r} ou {v:Y} (vertical)
+const curves=s=>{const c=s.c,Z=c.X0+c.x*s.eps,Ao=c.A+Z,m=c.m0+c.mi;
+  return{is:{f:Y=>(Ao-m*Y)/c.b},lm:{f:Y=>(c.k*Y-s.Mr)/c.h},
+    bp:c.f===Infinity?{f:()=>c.rs}:c.f===0?{v:Z/c.mi}:{f:Y=>c.rs+(c.mi*Y-Z)/c.f}}};
+const slope=L=>L.v!=null?Infinity:L.f(1)-L.f(0);
+const inv=(L,r)=>{if(L.v!=null)return L.v;const s=slope(L);return s?(r-L.f(0))/s:NaN};
+const same=(A,B)=>A.v!=null||B.v!=null?A.v!=null&&B.v!=null&&Math.abs(A.v-B.v)<.5:Math.abs(A.f(YMIN)-B.f(YMIN))<.01&&Math.abs(A.f(YMAX)-B.f(YMAX))<.01;
+const draw=(id,L,show)=>{const e=$(id);e.style.display=show?"":"none";if(!show)return;
+  const [x1,y1,x2,y2]=L.v!=null?[px(L.v),B0,px(L.v),T0]:[px(YMIN),py(L.f(YMIN)),px(YMAX),py(L.f(YMAX))];
+  e.setAttribute("x1",x1);e.setAttribute("y1",y1);e.setAttribute("x2",x2);e.setAttribute("y2",y2)};
+const put=(id,Y,r,show,dy=4)=>{const e=$(id),x=px(Y);e.setAttribute("x",x+6);e.setAttribute("y",py(r)+dy);e.style.display=show&&x>X0+6&&x<X1-28&&r>=0&&r<=RMAX?"":"none"};
+const lab=(id,L,r,show)=>put(id,inv(L,r),r,show);
+const labBP=(id,L,Yp,show,rv=9.3)=>{if(L.v!=null)return put(id,L.v,rv,show);
+  let Y=Yp,r=L.f(Y);if(r>9.6){r=9.6;Y=inv(L,r)}else if(r<.4){r=.4;Y=inv(L,r)}
+  put(id,Y,r,show,slope(L)===0?-6:16)};
+const pt=(c,l,s,show)=>{const x=px(s.Y),y=py(s.r);$(c).setAttribute("cx",x);$(c).setAttribute("cy",y);$(c).style.display=$(l).style.display=show&&x>=X0&&x<=X1&&y>=T0&&y<=B0?"":"none"};
+// rótulos dos pontos: tenta cada canto e fica com o primeiro que não cobre outro rótulo nem sai do gráfico
+const PLC=[[-8,16,"end"],[8,-8,"start"],[8,16,"start"],[-8,-8,"end"]];
+const ovl=(a,b)=>a.x<b.x+b.width&&b.x<a.x+a.width&&a.y<b.y+b.height&&b.y<a.y+a.height;
+const shown=e=>e.style.display!="none"&&!e.closest("[hidden]");
+// rótulos IS′, LM′, BP′: se cobrirem outro rótulo, tentam outras alturas ao longo da curva
+function unclash(cb){
+  const taken=["tis0","tlm0","tbp0"].map($).filter(shown).map(e=>e.getBBox());
+  for(const [id,f,vals] of [["tis1",r=>lab("tis1",cb.is,r,true),[7.4,6.5,8.3,5.6]],["tlm1",r=>lab("tlm1",cb.lm,r,true),[7.4,8.3,6.5,5.6]],["tbp1",([Y,r])=>labBP("tbp1",cb.bp,Y,true,r),[[1480,8.4],[1360,7.5],[1240,6.6],[1120,5.7]]]]){
+    const e=$(id);if(!shown(e))continue;
+    const ok=vals.some(v=>{f(v);return shown(e)&&!taken.some(t=>ovl(t,e.getBBox()))});
+    if(!ok)f(vals[0]);
+    if(shown(e))taken.push(e.getBBox());
+  }
+}
+function placePts(){
+  const taken=["tis0","tlm0","tbp0","tis1","tlm1","tbp1","e0","ei","e1"].map($).filter(shown).map(e=>e.getBBox());
+  for(const [c,l,pref] of [["e0","te0",0],["e1","te1",1],["ei","tei",2]]){
+    const C=$(c),L=$(l);if(!shown(C))continue;
+    const cx=+C.getAttribute("cx"),cy=+C.getAttribute("cy"),order=[pref,...[0,1,2,3].filter(k=>k!=pref)];
+    const at=k=>{const [dx,dy,an]=PLC[k];L.setAttribute("x",cx+dx);L.setAttribute("y",cy+dy);L.setAttribute("text-anchor",an);return L.getBBox()};
+    let b=null;
+    for(const k of order){const bb=at(k);if(bb.x>=X0+2&&bb.x+bb.width<=678&&bb.y>=T0-14&&bb.y+bb.height<=B0&&!taken.some(t=>ovl(t,bb))){b=bb;break}}
+    taken.push(b||at(pref));
+  }
+}
+const num=v=>String(v).replace(".",",");
+const fy=v=>Math.round(v).toLocaleString("pt-BR"),fr=v=>v.toFixed(1).replace(".",",")+"%",fe=v=>v.toFixed(2).replace(".",",");
+const dir=(d,tol)=>Math.abs(d)<tol?"não muda":d>0?"sobe":"cai";
+const dirE=d=>Math.abs(d)<.005?"não muda":d>0?"sobe: moeda doméstica se deprecia":"cai: moeda doméstica se aprecia";
+const row=(n,va,vb,f,d)=>`<div>${n}: <b>${f(va)}</b> → <b>${f(vb)}</b> (${d})</div>`;
+function mov(n,La,Lb,r){
+  if((La.v!=null)!==(Lb.v!=null))return `${n}: muda de inclinação`;
+  const sa=slope(La),sb=slope(Lb);let m;
+  if(sa===0||sb===0){const d=sa===0&&sb===0?Lb.f(0)-La.f(0):0;m=sa!==sb?"muda de inclinação":Math.abs(d)<.01?"sem mudança":d>0?"sobe":"desce";return `${n}: ${m}`}
+  const d=inv(Lb,r)-inv(La,r),g=Math.abs(sa-sb)>1e-9;
+  return `${n}: ${Math.abs(d)<.5?"sem mudança":d>0?"vai para a direita":"vai para a esquerda"}${g?" e gira":""}`;
+}
+function story(R,s){
+  const c=s.c;let sign,cap;
+  if(c.f===Infinity){const d=s.r-c.rs;sign=Math.abs(d)<.01?0:Math.sign(d);cap=sign>0?"juros acima de r*, entra capital":"juros abaixo de r*, sai capital"}
+  else{const kf=c.f*(s.r-c.rs),bal=s.NX+kf;sign=Math.abs(bal)<.5?0:Math.sign(bal);cap=`saldo ${fy(bal)} = exportações líquidas ${fy(s.NX)} + conta financeira ${fy(kf)}`}
+  if(!sign)return R=="none"?"O balanço de pagamentos está equilibrado: não há pressão sobre o câmbio.":"No impacto o balanço de pagamentos fica equilibrado, então não há ajuste adicional.";
+  const sup=sign>0,sal=sup?"superávit":"déficit";
+  if(R=="none")return `Em ${s===S.a?"E0":"E1"} o balanço de pagamentos tem ${sal} (${cap}). Com câmbio flutuante a moeda doméstica ${sup?"se apreciaria":"se depreciaria"}; com câmbio fixo o Banco Central teria de ${sup?"comprar":"vender"} divisas. Troque o regime para ver o ajuste.`;
+  if(R=="flu"){const two=c.f>0&&c.f<Infinity;return `No impacto (E′) o balanço de pagamentos fica em ${sal} (${cap}). A moeda doméstica ${sup?"se aprecia (ε cai)":"se deprecia (ε sobe)"}, as exportações líquidas ${sup?"caem":"sobem"} e ${two?"a IS e a BP":"a IS"} ${sup?(two?"recuam":"recua"):(two?"avançam":"avança")} até E1.`}
+  return `No impacto (E′) o balanço de pagamentos fica em ${sal} (${cap}). Para segurar o câmbio, o Banco Central ${sup?"compra divisas e emite moeda: M sobe e a LM vai para a direita":"vende divisas e retira moeda de circulação: M cai e a LM vai para a esquerda"} até E1.`;
+}
+const REGN={none:"Câmbio e moeda ficam onde estão. O gráfico mostra o desequilíbrio do balanço de pagamentos, sem ajuste.",
+  flu:"O câmbio se move até zerar o balanço de pagamentos. E vira endógeno (controle travado).",
+  fix:"O Banco Central compra ou vende divisas para manter E, então M vira endógena. Mexer em M mostra a tentativa (E′) e o resultado."};
+const MOBN={nula:"Sem fluxo de capital: a BP é vertical (só as exportações líquidas importam).",
+  baixa:"A BP é mais inclinada que a LM.",alta:"A BP é menos inclinada que a LM.",
+  perfeita:"Qualquer diferença entre r e r* atrai ou expulsa capital sem limite: a BP é horizontal em r*."};
+let S;
+function render(){
+  const cur=read(),op=rv("mode")=="a",R=op?rv("reg"):"none";
+  S=solve(base,cur,op,R);const {a,i,b}=S;
+  ids.forEach(k=>$("o_"+k).textContent=num(cur[k]));
+  $("E").disabled=op&&R=="flu";if(op&&R=="flu")$("o_E").textContent=fe(b.E)+" (endógeno)";
+  $("octl").hidden=$("oreg").hidden=!op;
+  $("ttl").textContent=op?"IS-LM-BP":"IS-LM";
+  $("regnote").textContent=REGN[R];$("mobnote").textContent=MOBN[cur.mob];
+  const ca=curves(a),cb=curves(b),ci=i&&curves(i);
+  const ch={is:!same(ca.is,cb.is),lm:!same(ca.lm,cb.lm),bp:op&&!same(ca.bp,cb.bp)};
+  draw("is0",ca.is,true);draw("lm0",ca.lm,true);draw("bp0",ca.bp,op);
+  draw("is1",cb.is,ch.is);draw("lm1",cb.lm,ch.lm);draw("bp1",cb.bp,ch.bp);
+  const showI=!!i&&(Math.abs(i.Y-b.Y)>.5||Math.abs(i.r-b.r)>.01);
+  for(const n of["is","lm","bp"])draw("i"+n,ci?ci[n]:null,showI&&(n!="bp"||op)&&!same(ci[n],cb[n])&&!same(ci[n],ca[n]));
+  $("legi").style.display=op&&R!="none"?"":"none";
+  $("hint").textContent=op?"Mexa nos controles. Tracejado é o ponto de partida, pontilhado é o impacto antes do ajuste do câmbio ou da moeda, e sólido é o resultado. Troque o regime para comparar o mesmo choque.":"Mexa nos controles. As curvas tracejadas são o ponto de partida e as sólidas, o resultado.";
+  lab("tis0",ca.is,9.2,true);lab("tlm0",ca.lm,9.2,true);labBP("tbp0",ca.bp,1600,op);
+  lab("tis1",cb.is,7.4,ch.is);lab("tlm1",cb.lm,7.4,ch.lm);labBP("tbp1",cb.bp,1480,ch.bp,8.4);
+  const mv=ch.is||ch.lm||ch.bp||Math.abs(b.Y-a.Y)>.5||Math.abs(b.r-a.r)>.01;
+  pt("e0","te0",a,true);pt("ei","tei",i||a,showI);pt("e1","te1",b,mv);unclash(cb);placePts();
+  let h=row("Renda (Y)",a.Y,b.Y,fy,dir(b.Y-a.Y,.5))+row("Juros (r)",a.r,b.r,fr,dir(b.r-a.r,.05));
+  if(op){h+=row("Câmbio real (ε = E·P*/P)",a.eps,b.eps,fe,dirE(b.eps-a.eps))+row("Exportações líquidas (NX)",a.NX,b.NX,fy,dir(b.NX-a.NX,.5));
+    if(R=="fix")h+=row("Oferta de moeda (M)",a.M,b.M,fy,dir(b.M-a.M,.5));}
+  const ms=[mov("IS",ca.is,cb.is,a.r),mov("LM",ca.lm,cb.lm,a.r)];if(op)ms.push(mov("BP",ca.bp,cb.bp,a.r));
+  h+=`<p>${ms.join(" · ")}</p>`;
+  if(op)h+=`<p>${R!="none"&&!mv&&!showI?"O balanço de pagamentos está equilibrado. Mexa em um controle para aplicar um choque.":story(R,R=="none"?(mv?b:a):i)}</p>`;
+  if(op&&(b.eps<.01||(R=="fix"&&b.M<=0)))h+=`<p><b>Atenção:</b> o choque é grande demais para este modelo linear (${b.eps<=0?"o câmbio real":"a oferta de moeda"} ficou negativo). Reduza o choque ou aumente a sensibilidade x.</p>`;
+  $("res").innerHTML=h;
+}
+ids.forEach(i=>$(i).addEventListener("input",render));
+document.querySelectorAll("input[type=radio]").forEach(e=>e.addEventListener("change",render));
+const setv=(id,v)=>{$(id).value=Math.min(lim[id][1],Math.max(lim[id][0],v))};
+$("fix").onclick=()=>{
+  // leva o câmbio (flutuante) ou a moeda (fixo) já ajustados para o novo ponto de partida
+  const op=rv("mode")=="a",R=op?rv("reg"):"none",{b}=solve(base,read(),op,R);
+  if(R=="flu")setv("E",b.E);if(R=="fix")setv("M",b.M);
+  base=read();render()};
+$("rst").onclick=()=>{ids.forEach(i=>$(i).value=def[i]);document.querySelector(`input[name=mob][value=${def.mob}]`).checked=true;base={...def};render()};
+render();
+</script>
+</body>
+</html>
