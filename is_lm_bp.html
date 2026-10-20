@@ -178,8 +178,8 @@ const draw=(id,L,show)=>{const e=$(id);e.style.display=show?"":"none";if(!show)r
   e.setAttribute("x1",x1);e.setAttribute("y1",y1);e.setAttribute("x2",x2);e.setAttribute("y2",y2)};
 const put=(id,Y,r,show,dy=4)=>{const e=$(id),x=px(Y);e.setAttribute("x",x+6);e.setAttribute("y",py(r)+dy);e.style.display=show&&x>X0+6&&x<X1-28&&r>=0&&r<=RMAX?"":"none"};
 const lab=(id,L,r,show)=>put(id,inv(L,r),r,show);
-const labBP=(id,L,Yp,show,rv=9.3)=>{if(L.v!=null)return put(id,L.v,rv,show);
-  let Y=Yp,r=L.f(Y);if(r>9.6){r=9.6;Y=inv(L,r)}else if(r<.4){r=.4;Y=inv(L,r)}
+const labBP=(id,L,Yp,show,rv=9.3)=>{if(!show){$(id).style.display="none";return}if(L.v!=null)return put(id,L.v,rv,show);
+  let Y=Yp,r=L.f(Y);if(slope(L)!==0){if(r>9.6){r=9.6;Y=inv(L,r)}else if(r<.4){r=.4;Y=inv(L,r)}}
   put(id,Y,r,show,slope(L)===0?-6:16)};
 const pt=(c,l,s,show)=>{const x=px(s.Y),y=py(s.r);$(c).setAttribute("cx",x);$(c).setAttribute("cy",y);$(c).style.display=$(l).style.display=show&&x>=X0&&x<=X1&&y>=T0&&y<=B0?"":"none"};
 // rótulos dos pontos: tenta cada canto e fica com o primeiro que não cobre outro rótulo nem sai do gráfico
