@@ -1,5 +1,8 @@
 # Histórico de versões
 
+## v1.0.2 (2026-10-20)
+- Adiciona autoria (Fernando Almeida Sousa Oliveira) no rodapé
+
 ## v1.0.1 (2026-10-20)
 - Corrige aviso de NaN no console nos rótulos da BP
 
