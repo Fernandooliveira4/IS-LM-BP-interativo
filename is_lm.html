@@ -7,9 +7,10 @@
 <title>IS-LM interativo</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%235b4fc7'/><text x='16' y='21.5' text-anchor='middle' font-family='Segoe UI,system-ui,sans-serif' font-size='15' font-weight='700' fill='%23fff'>IS</text></svg>">
 <style>
-:root{--bg:#fbfbf9;--fg:#1f2328;--mut:#5f6670;--line:#d8dbe0;--is:#5b4fc7;--lm:#c4491f;--card:#fff}
-@media(prefers-color-scheme:dark){:root{--bg:#16181c;--fg:#e8eaed;--mut:#9aa1ab;--line:#33373e;--is:#9d94f0;--lm:#f08a63;--card:#1d2025}}
+:root{--bg:#fbfbf9;--fg:#1f2328;--mut:#5f6670;--line:#d8dbe0;--is:#5b4fc7;--lm:#c4491f;--oa:#17805a;--card:#fff;--sel:#eceaf9}
+@media(prefers-color-scheme:dark){:root{--bg:#16181c;--fg:#e8eaed;--mut:#9aa1ab;--line:#33373e;--is:#9d94f0;--lm:#f08a63;--oa:#55c793;--card:#1d2025;--sel:#2c2a48}}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 footer{max-width:1080px;margin:0 auto;padding:0 16px 20px;font-size:12px;color:var(--mut)}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
 main{max-width:1080px;margin:0 auto;padding:24px 16px;display:grid;gap:24px;grid-template-columns:minmax(0,1.6fr) minmax(260px,1fr)}
@@ -18,27 +19,44 @@ h1{font-size:22px;margin:0 0 4px}
 h2{font-size:15px;margin:16px 0 6px}
 p{margin:0;color:var(--mut);font-size:14px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 16px;margin:12px 0}
+.card p{margin-top:6px}
 .row{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:8px;font-size:14px;margin:8px 0}
 .row input{grid-column:1/3;width:100%}
 output{font-variant-numeric:tabular-nums;color:var(--mut)}
 button{font:inherit;font-size:14px;padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--fg);cursor:pointer}
+button:disabled{opacity:.5;cursor:default}
 button:focus-visible,input:focus-visible{outline:2px solid var(--is);outline-offset:2px}
+.seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--card)}
+.seg label{position:relative;flex:1;text-align:center;font-size:13px;padding:6px 4px;cursor:pointer;border-left:1px solid var(--line)}
+.seg label:first-child{border-left:0}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked){background:var(--sel);font-weight:600}
+.seg label:has(input:focus-visible){outline:2px solid var(--is);outline-offset:-2px}
+.note{font-size:13px;margin-top:6px}
+.warn b{color:var(--lm)}
+.gt{font-size:13px;color:var(--mut);margin:12px 0 0}
 svg text{fill:var(--fg);font-size:13px}
 .ax{stroke:var(--mut)}
 .grid{stroke:var(--line);stroke-width:.5}
 .is{stroke:var(--is);stroke-width:2.5}
 .lm{stroke:var(--lm);stroke-width:2.5}
+.oa{stroke:var(--oa);stroke-width:2.5}
+.mp{stroke:var(--mut);stroke-width:1.5;stroke-dasharray:6 3}
 .d{stroke-dasharray:5 4;opacity:.6;stroke-width:1.5}
-#e0{fill:none;stroke:var(--mut);stroke-width:1.5}
-#e1{fill:var(--fg)}
+.tr{stroke:var(--fg);stroke-width:1.5;stroke-dasharray:1 4;stroke-linecap:round}
+.drop{stroke:var(--mut);stroke-dasharray:2 3;stroke-width:1}
+#e0,.p0{fill:var(--card);stroke:var(--mut);stroke-width:1.5}
+#e1,.p1{fill:var(--fg)}
+.pm{fill:none;stroke:var(--fg);stroke-width:1.5}
 </style>
 </head>
 <body>
 <main>
 <section>
-<h1>IS-LM</h1>
+<h1>IS-LM e OA-DA</h1>
 <p>Mexa nos controles. As curvas tracejadas são o ponto de partida e as sólidas, o resultado.</p>
 <div class="card" id="res"></div>
+<p class="gt">Mercado de bens e mercado monetário (IS-LM)</p>
 <svg viewBox="0 0 680 364" width="100%" role="img" aria-label="Gráfico IS-LM com renda Y no eixo horizontal e juros r no eixo vertical">
 <defs><clipPath id="c"><rect x="60" y="20" width="590" height="300"/></clipPath></defs>
 <g id="ticks"></g>
@@ -55,8 +73,21 @@ svg text{fill:var(--fg);font-size:13px}
 <circle id="e0" r="4"/><circle id="e1" r="4.5"/>
 <text id="te0" text-anchor="end">E0</text><text id="te1">E1</text>
 </svg>
+<p class="gt">Oferta e demanda agregadas (OA-DA)</p>
+<svg id="sv2" viewBox="0 0 680 300" width="100%" role="img" aria-label="Gráfico OA-DA com renda Y no eixo horizontal e nível de preços P no eixo vertical"></svg>
 </section>
 <aside>
+<h2 id="h_oa">Curva de oferta agregada (OA)</h2>
+<div class="seg" role="radiogroup" aria-labelledby="h_oa">
+<label><input type="radio" name="oa" value="key">Keynesiana</label>
+<label><input type="radio" name="oa" value="bla" checked>Blanchard</label>
+<label><input type="radio" name="oa" value="cla">Clássica</label>
+</div>
+<p class="note" id="oanote"></p>
+<div id="dyn" style="margin-top:10px">
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button id="step">Avançar um período</button><button id="mrun">Ir ao médio prazo</button></div>
+<p class="note" id="dyninfo"></p>
+</div>
 <div id="ctl"></div>
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px">
 <button id="fix">Fixar ponto de partida</button>
@@ -75,15 +106,24 @@ const CFG=[["Mercado de bens (IS)"],
 ["b","Sensibilidade do investimento aos juros (b)",5,50,1,20],
 ["Mercado monetário (LM)"],
 ["M","Oferta de moeda (M)",100,500,5,250],
-["P","Nível de preços (P)",0.5,2,0.05,1],
 ["k","Demanda por moeda: sensibilidade à renda (k)",0.2,1,0.05,0.5],
-["h","Demanda por moeda: sensibilidade aos juros (h)",10,100,1,50]];
+["h","Demanda por moeda: sensibilidade aos juros (h)",10,100,1,50],
+["Oferta agregada (OA)"],
+["Pe","Nível de preços esperado (Pᵉ)",0.5,2.5,0.001,1],
+["L","Força de trabalho (L)",800,1400,10,1100],
+["mu","Markup das empresas (μ)",0,0.4,0.01,0.1],
+["z","Fatores institucionais do salário (z)",-0.1,0.2,0.01,0],
+["al","Sensibilidade do salário ao desemprego (α)",0.5,3,0.05,1]];
+const LBL_KEY={Pe:"Nível de preços (P, fixo)"};
+const NOTE={key:"OA horizontal: os preços ficam fixos em P e a renda é determinada só pela demanda. É o IS-LM puro.",
+  bla:"OA de curto prazo: P = Pᵉ(1+μ)(1 − αu + z), com u = 1 − Y/L. A OA de médio prazo é vertical no produto natural Yₙ, onde P = Pᵉ (Blanchard, Macroeconomia).",
+  cla:"OA vertical em Yₙ: preços e salários totalmente flexíveis. A demanda só muda P e r, nunca a renda."};
 const $=i=>document.getElementById(i);
-const def={},ids=[];let html="";
+const def={},ids=[],LBL={};let html="";
 for(const c of CFG){
   if(c.length==1){html+=`<h2>${c[0]}</h2>`;continue}
-  const [id,l,mn,mx,st,d]=c;def[id]=d;ids.push(id);
-  html+=`<div class="row"><label for="${id}">${l}</label><output id="o_${id}"></output><input type="range" id="${id}" min="${mn}" max="${mx}" step="${st}" value="${d}"></div>`;
+  const [id,l,mn,mx,st,d]=c;def[id]=d;ids.push(id);LBL[id]=l;
+  html+=`<div class="row" id="r_${id}"><label for="${id}" id="l_${id}">${l}</label><output id="o_${id}"></output><input type="range" id="${id}" min="${mn}" max="${mx}" step="${st}" value="${d}"></div>`;
 }
 $("ctl").innerHTML=html;
 const X0=60,X1=650,T0=20,B0=320,YMIN=300,YMAX=1700,RMAX=10;
@@ -92,17 +132,32 @@ let t="";
 for(let r=0;r<=10;r+=2)t+=`<line x1="${X0}" x2="${X1}" y1="${py(r)}" y2="${py(r)}" class="grid"/><text x="52" y="${py(r)+4}" text-anchor="end">${r}</text>`;
 for(let y=400;y<=1600;y+=200)t+=`<text x="${px(y)}" y="338" text-anchor="middle">${y}</text>`;
 $("ticks").innerHTML=t;
-let base={...def};
+let base={...def},traj=[];
+const rv=n=>document.querySelector(`input[name=${n}]:checked`).value;
 const read=()=>Object.fromEntries(ids.map(i=>[i,+$(i).value]));
-const calc=p=>{const A=p.c0-p.c1*p.Tx+p.I0+p.G,m=1-p.c1,Mr=p.M/p.P,r=(p.k*A-m*Mr)/(p.k*p.b+m*p.h);return{A,m,Mr,r,Y:(A-p.b*r)/m,b:p.b,k:p.k,h:p.h}};
+
+// ---------- modelo ----------
+// IS: Y = (A − b·r)/(1−c1); LM: M/P = k·Y − h·r. DA: Y = (h·A + b·M/P)/D, com D = (1−c1)·h + b·k.
+// OA (Blanchard): P = Pᵉ(1+μ)·F(u, z), F = 1 − α·u + z, u = 1 − Y/L. Produto natural: P = Pᵉ ⇒ uₙ = (1 + z − 1/(1+μ))/α.
+const calc=(p,mode)=>{const A=p.c0-p.c1*p.Tx+p.I0+p.G,m=1-p.c1,D=m*p.h+p.b*p.k;
+  const AD=P=>(p.h*A+p.b*p.M/P)/D,PAD=Y=>D*Y-p.h*A>0?p.b*p.M/(D*Y-p.h*A):Infinity;
+  const un=(1+p.z-1/(1+p.mu))/p.al,Yn=p.L*(1-un),PAS=Y=>p.Pe*(1+p.mu)*(1-p.al*(1-Y/p.L)+p.z);
+  let P,Y;
+  if(mode=="key"){P=p.Pe;Y=AD(P)}
+  else if(mode=="cla"){Y=Yn;P=PAD(Yn)}
+  else{// DA = OA ⇒ a·P² + c·P − b·M/D = 0, com a = L/(α·Pᵉ·(1+μ)) e c = L(1 − (1+z)/α) − h·A/D
+    const a=p.L/(p.al*p.Pe*(1+p.mu)),c=p.L*(1-(1+p.z)/p.al)-p.h*A/D,q=p.b*p.M/D;
+    P=(-c+Math.sqrt(c*c+4*a*q))/(2*a);Y=AD(P)}
+  const Mr=p.M/P,r=(p.k*Y-Mr)/p.h;
+  return{A,m,Mr,r,Y,P,b:p.b,k:p.k,h:p.h,D,Yn,un,u:1-Y/p.L,PMR:PAD(Yn),rMR:(A-m*Yn)/p.b,AD,PAD,PAS,Pe:p.Pe,ok:Number.isFinite(P)&&P>0&&Y>0}};
+
+// ---------- gráfico IS-LM ----------
 const seg=(id,f)=>{const e=$(id);e.setAttribute("x1",px(YMIN));e.setAttribute("y1",py(f(YMIN)));e.setAttribute("x2",px(YMAX));e.setAttribute("y2",py(f(YMAX)))};
 const lab=(id,Y,r,show)=>{const e=$(id),x=px(Y);e.setAttribute("x",x+6);e.setAttribute("y",py(r)+4);e.style.display=show&&x>X0+6&&x<X1-28?"":"none"};
-const fy=v=>Math.round(v).toLocaleString("pt-BR"),fr=v=>v.toFixed(1).replace(".",",")+"%";
+const fy=v=>Math.round(v).toLocaleString("pt-BR"),fr=v=>v.toFixed(1).replace(".",",")+"%",fp=v=>v.toFixed(2).replace(".",","),fu=v=>(v*100).toFixed(1).replace(".",",")+"%";
 const dir=(d,tol)=>Math.abs(d)<tol?"não muda":d>0?"sobe":"cai";
 const mov=(d,n,g)=>`${n}: ${Math.abs(d)<.5?"sem mudança":d>0?"vai para a direita":"vai para a esquerda"}${g?" e gira":""}`;
-function render(){
-  const cur=read(),a=calc(base),b=calc(cur);
-  ids.forEach(i=>$("o_"+i).textContent=cur[i]);
+function drawISLM(a,b){
   seg("is0",Y=>(a.A-a.m*Y)/a.b);seg("lm0",Y=>(a.k*Y-a.Mr)/a.h);
   seg("is1",Y=>(b.A-b.m*Y)/b.b);seg("lm1",Y=>(b.k*Y-b.Mr)/b.h);
   const isC=Math.abs(b.A-a.A)>1e-9||Math.abs(b.m-a.m)>1e-9||b.b!==a.b;
@@ -117,11 +172,82 @@ function render(){
   $("te1").setAttribute("x",x1+8);$("te1").setAttribute("y",y1-8);
   $("e1").style.display=$("te1").style.display=mv?"":"none";
   const dI=(b.A-5*b.b)/b.m-(a.A-5*a.b)/a.m,dL=(b.Mr+5*b.h)/b.k-(a.Mr+5*a.h)/a.k;
-  $("res").innerHTML=`<div>Renda (Y): <b>${fy(a.Y)}</b> → <b>${fy(b.Y)}</b> (${dir(b.Y-a.Y,.5)})</div>
-<div>Juros (r): <b>${fr(a.r)}</b> → <b>${fr(b.r)}</b> (${dir(b.r-a.r,.05)})</div>
-<p>${mov(dI,"IS",Math.abs(b.m-a.m)>1e-9)} · ${mov(dL,"LM",b.k!==a.k)}</p>`;
+  return `<p>${mov(dI,"IS",Math.abs(b.m-a.m)>1e-9)} · ${mov(dL,"LM",b.k!==a.k)}</p>`;
 }
-ids.forEach(i=>$(i).addEventListener("input",render));
+
+// ---------- gráfico OA-DA ----------
+const T2=20,B2=256;
+function drawOADA(a,b,mode){
+  const fin=v=>Number.isFinite(v)&&v>0,pts=[a.P,b.P,...traj.map(q=>q.P),mode=="bla"?b.PMR:NaN].filter(fin);
+  // eixo de preços ajustado aos pontos (não começa em zero, para não espremer o gráfico)
+  const lo0=.6*Math.min(...pts,1),hi0=1.4*Math.max(...pts,1),st0=(hi0-lo0)/5,pw=Math.pow(10,Math.floor(Math.log10(st0))),mm=st0/pw,st=(mm<=1?1:mm<=2?2:mm<=2.5?2.5:mm<=5?5:10)*pw;
+  const PMIN=Math.floor(lo0/st)*st,PMAX=Math.ceil(hi0/st)*st,qy=P=>B2-(P-PMIN)/(PMAX-PMIN)*(B2-T2);
+  const ins=(Y,P)=>fin(P)&&Y>=YMIN&&Y<=YMAX&&P>=PMIN&&P<=PMAX;
+  const path=(pts,cls)=>{let d="",pen=false;for(const[Y,P]of pts){if(!Number.isFinite(P)||P<0){pen=false;continue}d+=(pen?"L":"M")+px(Y).toFixed(1)+","+qy(Math.min(P,3*PMAX)).toFixed(1);pen=true}return d?`<path d="${d}" class="${cls}" fill="none"/>`:""};
+  const Ys=[...Array(281).keys()].map(i=>YMIN+(YMAX-YMIN)*i/280);
+  const cAD=c=>Ys.map(Y=>[Y,c.PAD(Y)]),cAS=c=>mode=="key"?[[YMIN,c.Pe],[YMAX,c.Pe]]:mode=="cla"?[[c.Yn,0],[c.Yn,3*PMAX]]:Ys.map(Y=>[Y,c.PAS(Y)]);
+  const dif=(u,v)=>u.length!=v.length||u.some((q,i)=>Math.abs(q[0]-v[i][0])>1e-9||(Number.isFinite(q[1])||Number.isFinite(v[i][1]))&&Math.abs(q[1]-v[i][1])>1e-9);
+  const da0=cAD(a),da1=cAD(b),oa0=cAS(a),oa1=cAS(b),chD=dif(da0,da1),chS=dif(oa0,oa1),chN=Math.abs(a.Yn-b.Yn)>1e-9;
+  let s=`<defs><clipPath id="c2"><rect x="${X0}" y="${T2}" width="${X1-X0}" height="${B2-T2}"/></clipPath></defs>`;
+  for(let v=PMIN;v<=PMAX+1e-9;v+=st)s+=`<line x1="${X0}" x2="${X1}" y1="${qy(v)}" y2="${qy(v)}" class="grid"/><text x="52" y="${qy(v)+4}" text-anchor="end">${fp(v)}</text>`;
+  for(let y=400;y<=1600;y+=200)s+=`<text x="${px(y)}" y="${B2+18}" text-anchor="middle">${y}</text>`;
+  s+=`<line x1="${X0}" y1="${B2}" x2="${X1}" y2="${B2}" class="ax"/><line x1="${X0}" y1="${T2}" x2="${X0}" y2="${B2}" class="ax"/><text x="${X1}" y="${B2+38}" text-anchor="end">Y (renda)</text><text x="${X0+4}" y="14">P (nível de preços)</text>`;
+  s+=`<g clip-path="url(#c2)">`;
+  if(mode!="cla"){if(chN)s+=path([[a.Yn,0],[a.Yn,3*PMAX]],"mp d");s+=path([[b.Yn,0],[b.Yn,3*PMAX]],"mp")}
+  if(chD)s+=path(da0,"is d");if(chS)s+=path(oa0,"oa d");
+  s+=path(da1,"is")+path(oa1,"oa");
+  if(traj.length>1)s+=path(traj.map(q=>[q.Y,q.P]),"tr");
+  s+=`</g>`;
+  // rótulos: DA no primeiro ponto visível (alto, à esquerda), OA no último
+  const first=c=>c.find(([Y,P])=>ins(Y,P)),last=c=>[...c].reverse().find(([Y,P])=>ins(Y,P));
+  const tx=(q,t,dx,dy,an="start")=>q?`<text x="${px(q[0])+dx}" y="${Math.max(T2+12,Math.min(B2-4,qy(q[1])+dy))}" text-anchor="${an}">${t}</text>`:"";
+  s+=tx(first(da1),chD?"DA′":"DA",8,6);
+  const bot=PMIN+.04*(PMAX-PMIN);
+  s+=mode=="cla"?tx([b.Yn,bot],chS?"OA′ (vertical em Yₙ)":"OA (vertical em Yₙ)",6,0):tx(last(oa1),chS?"OA′":"OA",-4,mode=="key"?-6:-8,"end");
+  if(mode!="cla")s+=tx([b.Yn,bot],"Yₙ: OA de médio prazo",6,0);
+  // pontos: partida, trajetória e médio prazo
+  const moved=Math.abs(a.Y-b.Y)>.5||Math.abs(a.P-b.P)>5e-4;
+  const dot=(Y,P,cls,r)=>ins(Y,P)?`<circle cx="${px(Y)}" cy="${qy(P)}" r="${r}" class="${cls}"/>`:"";
+  if(mode=="bla"&&fin(b.PMR)&&Math.abs(traj.at(-1).Y-b.Yn)>.5)s+=dot(b.Yn,b.PMR,"pm",7)+tx([b.Yn,b.PMR],"médio prazo",-11,-8,"end");
+  s+=dot(a.Y,a.P,"p0",4)+tx([a.Y,a.P],"E0",-8,16,"end");
+  traj.forEach((q,i)=>{const lastp=i==traj.length-1;if(!moved&&traj.length==1)return;s+=dot(q.Y,q.P,lastp?"p1":"p1",lastp?4.5:2.5)});
+  if(moved||traj.length>1){s+=tx([traj[0].Y,traj[0].P],"E1",8,-8);if(traj.length>1)s+=tx([traj.at(-1).Y,traj.at(-1).P],`t = ${traj.length}`,8,-8)}
+  $("sv2").innerHTML=s;
+}
+
+function render(reset=true){
+  const mode=rv("oa"),cur=read(),a=calc(base,mode),b=calc(cur,mode);
+  ids.forEach(i=>{$("o_"+i).textContent=i=="Pe"?cur[i].toFixed(2):cur[i];$("l_"+i).textContent=mode=="key"&&LBL_KEY[i]?LBL_KEY[i]:LBL[i]});
+  $("r_Pe").hidden=mode=="cla";$("dyn").hidden=mode!="bla";$("oanote").textContent=NOTE[mode];
+  if(reset||!traj.length)traj=[{Y:b.Y,P:b.P}];else traj.push({Y:b.Y,P:b.P});
+  const isl=drawISLM(a,b);drawOADA(a,b,mode);
+  $("step").disabled=$("mrun").disabled=true;
+  if(!a.ok||!b.ok){$("res").innerHTML=`<p class="warn"><b>Atenção:</b> não existe equilíbrio ${b.ok?"no ponto de partida":"com a configuração atual"}${mode=="cla"?": a demanda é alta demais para o produto natural em qualquer nível de preços":""}.</p>`;$("dyninfo").textContent="";return}
+  let h=`<div>Renda (Y): <b>${fy(a.Y)}</b> → <b>${fy(b.Y)}</b> (${dir(b.Y-a.Y,.5)})</div>
+<div>Juros (r): <b>${fr(a.r)}</b> → <b>${fr(b.r)}</b> (${dir(b.r-a.r,.05)})</div>
+<div>Preços (P): <b>${fp(a.P)}</b> → <b>${fp(b.P)}</b> (${dir(b.P-a.P,.005)})</div>`;
+  if(mode!="key")h+=`<div>Desemprego (u): <b>${fu(a.u)}</b> → <b>${fu(b.u)}</b> · natural: <b>${fu(b.un)}</b></div>`;
+  h+=isl;
+  const gap=b.Y-b.Yn;
+  if(mode=="key")h+=`<p>Com preços fixos, só a demanda importa: G, T, M e os gastos autônomos deslocam a DA, e todo o deslocamento vira renda, como no IS-LM puro.</p>`;
+  else if(mode=="cla")h+=`<p>A renda fica no produto natural Yₙ = ${fy(b.Yn)}. Uma expansão da demanda só eleva P (e os juros, se for fiscal): a moeda é neutra e a política fiscal desloca o investimento por completo (crowding out total).</p>`;
+  else{
+    h+=`<p>${Math.abs(gap)<.5?`A economia está no produto natural (Y = Yₙ = ${fy(b.Yn)}) e P = Pᵉ: não há pressão para os preços mudarem.`
+      :`No curto prazo a renda está ${gap>0?"acima":"abaixo"} do produto natural (Yₙ = ${fy(b.Yn)}), então P ${gap>0?"supera":"fica abaixo de"} Pᵉ. Ao revisar as expectativas (Pᵉ passa a ser o P observado), a OA ${gap>0?"sobe":"desce"}, a LM ${gap>0?"recua":"avança"} com a mudança de M/P e a economia caminha para Yₙ. Use "Avançar um período".`}</p>`;
+    if(Number.isFinite(b.PMR))h+=`<p>Médio prazo: Y = ${fy(b.Yn)}, P = ${fp(b.PMR)} e r = ${fr(b.rMR)}. Os juros de médio prazo vêm da IS com Y = Yₙ, por isso não dependem de M: a moeda é neutra no médio prazo, e a política fiscal muda só a composição da demanda.</p>`;
+  }
+  if(mode=="bla"&&!Number.isFinite(b.PMR))h+=`<p class="warn"><b>Atenção:</b> a demanda supera Yₙ em qualquer nível de preços, então não há equilíbrio de médio prazo: P e Pᵉ subiriam sem parar.</p>`;
+  if(b.u<0)h+=`<p class="warn"><b>Atenção:</b> a renda passou da força de trabalho (desemprego negativo); o modelo linear deixa de fazer sentido aqui.</p>`;
+  $("res").innerHTML=h;
+  const n=traj.length;$("dyninfo").textContent=`Período ${n}: Pᵉ = ${fp(cur.Pe)}, P = ${fp(b.P)}.`;
+  const canMR=mode=="bla"&&b.ok&&Number.isFinite(b.PMR)&&Math.abs(gap)>.5,inR=v=>v>=+$("Pe").min&&v<=+$("Pe").max;
+  $("step").disabled=!(canMR&&inR(b.P));$("mrun").disabled=!(canMR&&inR(b.PMR));
+}
+ids.forEach(i=>$(i).addEventListener("input",()=>render()));
+document.querySelectorAll("input[name=oa]").forEach(e=>e.addEventListener("change",()=>render()));
+// expectativas adaptativas do Blanchard: Pᵉ do próximo período = P observado
+$("step").onclick=()=>{const b=calc(read(),"bla");$("Pe").value=b.P;render(false)};
+$("mrun").onclick=()=>{const b=calc(read(),"bla");$("Pe").value=b.PMR;render(false)};
 $("fix").onclick=()=>{base=read();render()};
 $("rst").onclick=()=>{ids.forEach(i=>$(i).value=def[i]);base={...def};render()};
 render();

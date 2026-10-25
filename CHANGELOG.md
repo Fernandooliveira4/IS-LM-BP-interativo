@@ -1,5 +1,8 @@
 # Histórico de versões
 
+## v1.1.0 (2026-10-25)
+- IS-LM ganha o gráfico OA-DA: oferta agregada keynesiana, do Blanchard (com ajuste de expectativas até o médio prazo) ou clássica
+
 ## v1.0.3 (2026-10-25)
 - Ícone próprio na aba do navegador
 
