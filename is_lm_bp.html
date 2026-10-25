@@ -10,6 +10,7 @@
 :root{--bg:#fbfbf9;--fg:#1f2328;--mut:#5f6670;--line:#d8dbe0;--is:#5b4fc7;--lm:#c4491f;--bp:#17805a;--card:#fff;--sel:#eceaf9}
 @media(prefers-color-scheme:dark){:root{--bg:#16181c;--fg:#e8eaed;--mut:#9aa1ab;--line:#33373e;--is:#9d94f0;--lm:#f08a63;--bp:#55c793;--card:#1d2025;--sel:#2c2a48}}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 footer{max-width:1080px;margin:0 auto;padding:0 16px 20px;font-size:12px;color:var(--mut)}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
 main{max-width:1080px;margin:0 auto;padding:24px 16px;display:grid;gap:24px;grid-template-columns:minmax(0,1.6fr) minmax(260px,1fr)}
@@ -46,10 +47,32 @@ svg text{fill:var(--fg);font-size:13px}
 #e0{fill:none;stroke:var(--mut);stroke-width:1.5}
 #ei{fill:var(--card);stroke:var(--fg);stroke-width:1.5}
 #e1{fill:var(--fg)}
+.pgbar{max-width:1080px;margin:0 auto;padding:16px 16px 0}
+.pgbar .seg{max-width:260px;margin-left:auto}
+.pgbar+main{padding-top:12px}
+.teo{max-width:760px;margin:0 auto;padding:12px 16px 32px}
+.teo h1{margin-bottom:8px}
+.teo h2{font-size:17px;margin:28px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.teo h3{font-size:15px;margin:18px 0 4px}
+.teo p,.teo li{color:var(--fg);font-size:15px;line-height:1.6}
+.teo p{margin:8px 0}
+.teo .lead{color:var(--mut);font-size:16px}
+.teo ul{margin:8px 0;padding-left:22px}
+.teo li{margin:6px 0}
+.teo .sim{display:block;color:var(--mut);font-size:14px;margin-top:2px}
+.teo .ref li{color:var(--mut);font-size:14px}
+.eq{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 16px;margin:10px 0;font:16px/1.7 "Cambria Math",Cambria,"STIX Two Math","Times New Roman",serif;overflow-x:auto}
+.eq div{white-space:nowrap}
+.eq span{font:13px system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--mut);margin-left:12px}
+@media(max-width:560px){.eq{font-size:15px}.eq div{white-space:normal;padding-left:1em;text-indent:-1em}.eq span{display:block;margin-left:0;text-indent:0}}
 </style>
 </head>
 <body>
-<main>
+<div class="pgbar"><div class="seg" role="radiogroup" aria-label="Página">
+<label><input type="radio" name="pg" value="sim" checked>Simulador</label>
+<label><input type="radio" name="pg" value="teo">Teoria</label>
+</div></div>
+<main id="sim">
 <section>
 <h1 id="ttl">IS-LM-BP</h1>
 <p id="hint"></p>
@@ -108,6 +131,70 @@ svg text{fill:var(--fg);font-size:13px}
 </div>
 </aside>
 </main>
+<article id="teo" class="teo" hidden>
+<h1>Teoria: IS-LM-BP (Mundell-Fleming)</h1>
+<p class="lead">O modelo IS-LM-BP leva o IS-LM para uma economia aberta ao comércio e aos fluxos de capital. Ele mostra como o regime de câmbio e a mobilidade de capital mudam o efeito das políticas fiscal e monetária sobre a renda.</p>
+
+<h2>Ideia central</h2>
+<p>Numa economia aberta, a demanda por bens domésticos inclui as exportações líquidas, que dependem do câmbio real e da renda. Além dos mercados de bens (IS) e de moeda (LM), o balanço de pagamentos precisa fechar: o saldo das exportações líquidas mais a entrada líquida de capital, atraída por juros domésticos acima dos internacionais, deve ser zero. A curva BP reúne as combinações de renda e juros com o balanço equilibrado.</p>
+<p>Se as três curvas não passam pelo mesmo ponto, alguma variável se ajusta. No câmbio flutuante, o câmbio muda e desloca a IS. No câmbio fixo, o banco central compra ou vende divisas para manter a taxa, a oferta de moeda muda e a LM se desloca.</p>
+
+<h2>Hipóteses</h2>
+<ul>
+<li>Economia pequena: os juros internacionais r* e os preços externos P* são dados.</li>
+<li>Os preços domésticos P são fixos no curto prazo, como no IS-LM. O câmbio real é ε = E·P*/P, e uma alta de E é uma desvalorização da moeda doméstica.</li>
+<li>As exportações líquidas sobem com o câmbio real e caem com a renda, por causa das importações.</li>
+<li>Os fluxos de capital respondem à diferença r − r*, com intensidade f (a mobilidade de capital). Não há expectativa de variação do câmbio.</li>
+<li>No câmbio fixo, o banco central não esteriliza: a compra ou a venda de divisas muda a oferta de moeda na mesma quantia.</li>
+</ul>
+
+<h2>Equações</h2>
+<div class="eq">
+<div>IS: Y = c0 + c1·(Y − T) + I0 − b·r + G + NX</div>
+<div>NX = X0 + x·ε − m·Y, com ε = E·P*/P</div>
+<div>LM: M/P = k·Y − h·r</div>
+<div>BP: NX + f·(r − r*) = 0</div>
+</div>
+<p>Na BP, o primeiro termo é o saldo comercial e o segundo, a conta de capital. Com mobilidade nula (f = 0), a BP é vertical na renda que zera as exportações líquidas. Quanto maior f, mais plana ela fica (inclinação m/f). Com mobilidade perfeita (f → ∞), a BP é horizontal em r = r*, e os juros domésticos não podem se afastar dos internacionais. A economia fechada é o caso sem NX e sem BP.</p>
+
+<h2>Regimes e mobilidade de capital</h2>
+<h3>Sem ajuste</h3>
+<p>E e M ficam parados. A renda sai do cruzamento IS-LM, e o balanço de pagamentos pode ficar com superávit ou déficit. Serve de comparação: é o efeito antes de qualquer reação do câmbio ou das reservas.</p>
+<h3>Câmbio flutuante</h3>
+<p>O banco central não intervém, e o câmbio se ajusta até o balanço fechar. Um superávit valoriza a moeda doméstica: as exportações líquidas caem e a IS volta para a esquerda. Um déficit desvaloriza a moeda e empurra a IS para a direita. A oferta de moeda continua sendo um instrumento do banco central.</p>
+<h3>Câmbio fixo</h3>
+<p>O banco central compra ou vende divisas à taxa fixada. Um superávit leva à compra de divisas, que expande a moeda e desloca a LM para a direita; um déficit faz o contrário. A oferta de moeda deixa de ser instrumento e passa a ser o que o balanço exige.</p>
+<h3>Mobilidade de capital</h3>
+<p>Com mobilidade nula, só o comércio conta e a BP é vertical. Com mobilidade perfeita, o caso tratado pelo Mankiw, qualquer diferença entre r e r* gera fluxos ilimitados, e r = r*. As mobilidades baixa e alta ficam no meio, com a BP inclinada, como na formulação de Fleming (1962).</p>
+
+<h2>Resultados principais</h2>
+<ul>
+<li><b>Flutuante com mobilidade perfeita.</b> A política fiscal não muda a renda: o gasto maior pressiona os juros, entra capital, a moeda valoriza e as exportações líquidas caem o mesmo que o gasto subiu. A política monetária é eficaz: juros menores fazem o capital sair, a moeda desvaloriza e as exportações líquidas sobem.<span class="sim">No simulador: Flutuante, mobilidade Perfeita, aumente G. E′ mostra o impacto antes da valorização.</span></li>
+<li><b>Fixo com mobilidade perfeita.</b> O inverso: a política fiscal é eficaz, porque o banco central expande a moeda para segurar o câmbio, e a política monetária não muda a renda, porque a expansão vira perda de reservas.</li>
+<li><b>Mobilidade imperfeita.</b> Os resultados ficam entre os extremos. No flutuante, a política fiscal perde força à medida que a mobilidade sobe; com mobilidade nula, o câmbio mantém NX = 0 e a renda responde como numa economia fechada. No fixo, a política fiscal ganha força com a mobilidade e não muda a renda quando a mobilidade é nula. A política monetária não muda a renda no fixo, qualquer que seja a mobilidade.</li>
+<li><b>Direção do câmbio.</b> No flutuante, uma expansão fiscal valoriza a moeda quando a BP é mais plana que a LM (mobilidade alta) e a desvaloriza quando a BP é mais inclinada (mobilidade baixa).</li>
+<li><b>Desvalorização no câmbio fixo.</b> Subir E aumenta as exportações líquidas e a renda.</li>
+<li><b>Choque externo.</b> Com mobilidade perfeita, uma alta de r* desvaloriza a moeda e eleva a renda no flutuante, mas reduz a renda no fixo, em que o banco central perde reservas para defender a taxa.</li>
+</ul>
+
+<h2>Limitações</h2>
+<ul>
+<li>Os preços são fixos. O modelo descreve o curto prazo; com P se ajustando, o câmbio real e a renda voltam ao nível natural, como o Mankiw mostra ao ligar o Mundell-Fleming à OA-DA.</li>
+<li>Não há expectativas cambiais nem prêmio de risco. Pela paridade descoberta de juros, usada pelo Blanchard, os juros domésticos podem diferir de r* quando se espera depreciação ou quando o país é visto como arriscado.</li>
+<li>Os fluxos de capital dependem para sempre da diferença de juros. Em modelos de carteira, a diferença de juros muda o estoque de ativos desejado, e o fluxo se esgota.</li>
+<li>Supõe-se que as exportações líquidas sobem com a desvalorização (condição de Marshall-Lerner) e ignora-se a curva J, em que o saldo piora antes de melhorar.</li>
+<li>No câmbio fixo, as reservas são finitas: um déficit persistente pode terminar em ataque especulativo e abandono da paridade.</li>
+<li>A hipótese de economia pequena não vale para países grandes, que influenciam os juros internacionais.</li>
+</ul>
+
+<h2>Referências</h2>
+<ul class="ref">
+<li>Mankiw, N. G. <i>Macroeconomia</i>. Rio de Janeiro: LTC. Capítulo sobre a economia aberta no curto prazo: o modelo Mundell-Fleming e o regime de câmbio.</li>
+<li>Blanchard, O. <i>Macroeconomia</i>. 5. ed. São Paulo: Pearson Prentice Hall, 2011. Parte sobre a economia aberta: mercado de bens, IS-LM aberto e regimes de câmbio.</li>
+<li>Mundell, R. A. Capital mobility and stabilization policy under fixed and flexible exchange rates. <i>Canadian Journal of Economics and Political Science</i>, v. 29, n. 4, p. 475–485, 1963.</li>
+<li>Fleming, J. M. Domestic financial policies under fixed and under floating exchange rates. <i>IMF Staff Papers</i>, v. 9, n. 3, p. 369–380, 1962.</li>
+</ul>
+</article>
 <footer>Fernando Almeida Sousa Oliveira</footer>
 <script>
 const CFG=[["Mercado de bens (IS)"],
@@ -279,6 +366,13 @@ $("fix").onclick=()=>{
   base=read();render()};
 $("rst").onclick=()=>{ids.forEach(i=>$(i).value=def[i]);document.querySelector(`input[name=mob][value=${def.mob}]`).checked=true;base={...def};render()};
 render();
+</script>
+<script>
+// página: simulador ou teoria (o endereço com #teoria abre direto na teoria)
+(()=>{const sw=v=>{document.getElementById("sim").hidden=v!="sim";document.getElementById("teo").hidden=v=="sim"};
+document.querySelectorAll("input[name=pg]").forEach(e=>e.addEventListener("change",()=>{sw(e.value);scrollTo(0,0);
+  try{history.replaceState(null,"",e.value=="teo"?"#teoria":location.pathname+location.search)}catch(_){}}));
+if(location.hash=="#teoria"){document.querySelector("input[name=pg][value=teo]").checked=true;sw("teo")}})();
 </script>
 </body>
 </html>

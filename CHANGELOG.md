@@ -1,5 +1,8 @@
 # Histórico de versões
 
+## v1.2.0 (2026-10-25)
+- Aba Teoria: resumo do modelo (ideia central, hipóteses, equações, versões, resultados, limitações e referências), aberta pelo seletor Simulador | Teoria ou pelo endereço #teoria
+
 ## v1.1.1 (2026-10-25)
 - Teste definitivo da OA-DA: pontos e rótulos fora da área do gráfico não são mais desenhados; rótulos E0/E1 abertos para lados opostos
 

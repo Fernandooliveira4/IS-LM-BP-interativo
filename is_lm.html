@@ -48,10 +48,32 @@ svg text{fill:var(--fg);font-size:13px}
 #e0,.p0{fill:var(--card);stroke:var(--mut);stroke-width:1.5}
 #e1,.p1{fill:var(--fg)}
 .pm{fill:none;stroke:var(--fg);stroke-width:1.5}
+.pgbar{max-width:1080px;margin:0 auto;padding:16px 16px 0}
+.pgbar .seg{max-width:260px;margin-left:auto}
+.pgbar+main{padding-top:12px}
+.teo{max-width:760px;margin:0 auto;padding:12px 16px 32px}
+.teo h1{margin-bottom:8px}
+.teo h2{font-size:17px;margin:28px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.teo h3{font-size:15px;margin:18px 0 4px}
+.teo p,.teo li{color:var(--fg);font-size:15px;line-height:1.6}
+.teo p{margin:8px 0}
+.teo .lead{color:var(--mut);font-size:16px}
+.teo ul{margin:8px 0;padding-left:22px}
+.teo li{margin:6px 0}
+.teo .sim{display:block;color:var(--mut);font-size:14px;margin-top:2px}
+.teo .ref li{color:var(--mut);font-size:14px}
+.eq{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 16px;margin:10px 0;font:16px/1.7 "Cambria Math",Cambria,"STIX Two Math","Times New Roman",serif;overflow-x:auto}
+.eq div{white-space:nowrap}
+.eq span{font:13px system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--mut);margin-left:12px}
+@media(max-width:560px){.eq{font-size:15px}.eq div{white-space:normal;padding-left:1em;text-indent:-1em}.eq span{display:block;margin-left:0;text-indent:0}}
 </style>
 </head>
 <body>
-<main>
+<div class="pgbar"><div class="seg" role="radiogroup" aria-label="Página">
+<label><input type="radio" name="pg" value="sim" checked>Simulador</label>
+<label><input type="radio" name="pg" value="teo">Teoria</label>
+</div></div>
+<main id="sim">
 <section>
 <h1>IS-LM e OA-DA</h1>
 <p>Mexa nos controles. As curvas tracejadas são o ponto de partida e as sólidas, o resultado.</p>
@@ -95,6 +117,80 @@ svg text{fill:var(--fg);font-size:13px}
 </div>
 </aside>
 </main>
+<article id="teo" class="teo" hidden>
+<h1>Teoria: IS-LM e OA-DA</h1>
+<p class="lead">O modelo IS-LM explica como a renda e a taxa de juros se determinam no curto prazo, com o nível de preços dado e a produção acompanhando a demanda. A OA-DA acrescenta o nível de preços: mostra como a economia reage a choques no curto prazo e como volta ao produto natural no médio prazo.</p>
+
+<h2>Ideia central</h2>
+<p>No curto prazo, a produção é determinada pela demanda. A curva IS reúne as combinações de renda e juros que equilibram o mercado de bens: juros mais altos reduzem o investimento e, pelo multiplicador, a renda. A curva LM reúne as combinações que equilibram o mercado monetário: com a oferta de moeda dada, uma renda maior aumenta a demanda por moeda e exige juros mais altos. O cruzamento das duas dá a renda e os juros de equilíbrio para um nível de preços dado.</p>
+<p>Quando o nível de preços sobe, a oferta real de moeda M/P cai, a LM se desloca para cima e a renda diminui. Essa relação negativa entre P e Y é a demanda agregada (DA). A oferta agregada (OA) vem do mercado de trabalho: com mais produção, o desemprego cai, os salários nominais sobem e as empresas repassam o custo aos preços. A revisão das expectativas de preço leva a economia de volta ao produto natural Yₙ.</p>
+
+<h2>Hipóteses</h2>
+<ul>
+<li>Economia fechada, com governo.</li>
+<li>O consumo depende da renda disponível, e o investimento cai com os juros. O simulador não inclui o efeito da renda sobre o investimento, que o Blanchard usa em I(Y, i).</li>
+<li>O banco central controla a oferta de moeda. A demanda por moeda cresce com a renda e cai com os juros.</li>
+<li>Não há inflação esperada, então os juros nominal e real coincidem.</li>
+<li>Os salários são negociados com base no nível de preços esperado Pᵉ, e as empresas fixam os preços com um markup μ sobre o custo do trabalho. Cada trabalhador produz uma unidade, então o emprego é igual a Y.</li>
+<li>As expectativas são adaptativas: no período seguinte, Pᵉ passa a ser o P observado.</li>
+</ul>
+
+<h2>Equações</h2>
+<div class="eq">
+<div>IS: Y = c0 + c1·(Y − T) + I0 − b·r + G</div>
+<div>LM: M/P = k·Y − h·r</div>
+</div>
+<p>Com o gasto autônomo A = c0 − c1·T + I0 + G e D = (1 − c1)·h + b·k, o equilíbrio é</p>
+<div class="eq">
+<div>Y = (h·A + b·M/P) / D</div>
+<div>r = (k·A − (1 − c1)·M/P) / D</div>
+</div>
+<p>A primeira expressão, com P livre, é a curva DA. Os multiplicadores do gasto e da moeda real são h/D e b/D. O multiplicador do gasto fica abaixo do multiplicador keynesiano simples 1/(1 − c1) porque parte do estímulo vira juros mais altos e menos investimento (efeito deslocamento, ou <i>crowding out</i>).</p>
+<p>Na oferta agregada, salários e preços são fixados por</p>
+<div class="eq">
+<div>W = Pᵉ·(1 − α·u + z) <span>fixação de salários</span></div>
+<div>P = (1 + μ)·W <span>fixação de preços</span></div>
+<div>OA: P = Pᵉ·(1 + μ)·(1 − α·(1 − Y/L) + z)</div>
+</div>
+<p>em que u = 1 − Y/L é a taxa de desemprego. O produto natural é o que vale quando P = Pᵉ:</p>
+<div class="eq">
+<div>uₙ = (1 + z − 1/(1 + μ)) / α</div>
+<div>Yₙ = L·(1 − uₙ)</div>
+</div>
+
+<h2>As três versões da oferta agregada</h2>
+<h3>Keynesiana</h3>
+<p>OA horizontal: o nível de preços fica fixo e a renda é dada só pela demanda. É o IS-LM puro, que vale quando há capacidade ociosa e salários rígidos. As políticas fiscal e monetária mudam a renda sem mudar P.</p>
+<h3>Blanchard (curto e médio prazo)</h3>
+<p>No curto prazo, a OA é positivamente inclinada: P cresce com Y porque o desemprego menor eleva os salários. Se o produto fica acima de Yₙ, P supera Pᵉ. No período seguinte os trabalhadores revisam Pᵉ para cima, a OA sobe e a renda cai. O processo se repete até Y = Yₙ e P = Pᵉ. A OA de médio prazo é a vertical em Yₙ.</p>
+<h3>Clássica</h3>
+<p>OA vertical em Yₙ desde o início: preços e salários se ajustam na hora. A demanda determina só P e r. É o resultado de médio prazo do Blanchard, sem a transição.</p>
+
+<h2>Resultados principais</h2>
+<ul>
+<li><b>Política fiscal no curto prazo.</b> Mais G ou menos T deslocam a IS para a direita: a renda e os juros sobem, e o investimento cai em parte. Com a OA do Blanchard, parte do estímulo vira alta de preços.</li>
+<li><b>Política monetária no curto prazo.</b> Mais M desloca a LM para baixo: os juros caem, e o investimento e a renda sobem.</li>
+<li><b>Neutralidade da moeda no médio prazo.</b> Depois do ajuste das expectativas, um aumento de M eleva P na mesma proporção, e Y e r voltam aos valores iniciais.<span class="sim">No simulador: OA do Blanchard, aumente M e clique em “Ir ao médio prazo”.</span></li>
+<li><b>Deslocamento completo no médio prazo.</b> Uma expansão fiscal deixa a renda em Yₙ e eleva os juros até o investimento cair o mesmo que o gasto subiu.</li>
+<li><b>Choques de oferta.</b> Um markup μ maior (como numa alta do petróleo) ou fatores institucionais z maiores elevam uₙ e reduzem Yₙ. No curto prazo, os preços sobem e a renda cai (estagflação).<span class="sim">No simulador: aumente μ e avance período a período.</span></li>
+<li><b>Casos extremos da IS-LM.</b> Com h grande, a LM fica quase horizontal e a política monetária perde força (armadilha da liquidez). Com b pequeno, a IS fica quase vertical: a política fiscal quase não desloca investimento, e a monetária perde força.</li>
+</ul>
+
+<h2>Limitações</h2>
+<ul>
+<li>O modelo é estático: não há acumulação de capital nem expectativas sobre o futuro, e o investimento depende só dos juros correntes.</li>
+<li>Os juros nominal e real são iguais. Com inflação esperada, o investimento depende do juro real, e a armadilha da liquidez aparece no limite zero do juro nominal.</li>
+<li>Os bancos centrais de hoje fixam a taxa de juros, e não a quantidade de moeda. Por isso, as edições recentes do Blanchard trocam a LM por uma reta horizontal na taxa escolhida pelo banco central.</li>
+<li>Com expectativas adaptativas, o ajuste é lento e mecânico. Com expectativas racionais, uma política anunciada pode mudar Pᵉ na hora.</li>
+<li>A OA-DA trata o nível de preços, e não a inflação. Para a inflação persistente, o Blanchard usa a curva de Phillips.</li>
+</ul>
+
+<h2>Referências</h2>
+<ul class="ref">
+<li>Blanchard, O. <i>Macroeconomia</i>. 5. ed. São Paulo: Pearson Prentice Hall, 2011. Caps. 3 a 7: mercado de bens, mercados financeiros, IS-LM, mercado de trabalho e o modelo OA-DA. A partir da 7ª edição, a OA-DA dá lugar ao modelo IS-LM-PC.</li>
+<li>Hicks, J. R. Mr. Keynes and the “Classics”: a suggested interpretation. <i>Econometrica</i>, v. 5, n. 2, p. 147–159, 1937.</li>
+</ul>
+</article>
 <footer>Fernando Almeida Sousa Oliveira</footer>
 <script>
 const CFG=[["Mercado de bens (IS)"],
@@ -261,6 +357,13 @@ $("mrun").onclick=()=>{const b=calc(read(),"bla");$("Pe").value=b.PMR;render(fal
 $("fix").onclick=()=>{base=read();render()};
 $("rst").onclick=()=>{ids.forEach(i=>$(i).value=def[i]);base={...def};render()};
 render();
+</script>
+<script>
+// página: simulador ou teoria (o endereço com #teoria abre direto na teoria)
+(()=>{const sw=v=>{document.getElementById("sim").hidden=v!="sim";document.getElementById("teo").hidden=v=="sim"};
+document.querySelectorAll("input[name=pg]").forEach(e=>e.addEventListener("change",()=>{sw(e.value);scrollTo(0,0);
+  try{history.replaceState(null,"",e.value=="teo"?"#teoria":location.pathname+location.search)}catch(_){}}));
+if(location.hash=="#teoria"){document.querySelector("input[name=pg][value=teo]").checked=true;sw("teo")}})();
 </script>
 </body>
 </html>
