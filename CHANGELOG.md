@@ -1,5 +1,8 @@
 # Histórico de versões
 
+## v1.1.1 (2026-10-25)
+- Teste definitivo da OA-DA: pontos e rótulos fora da área do gráfico não são mais desenhados; rótulos E0/E1 abertos para lados opostos
+
 ## v1.1.0 (2026-10-25)
 - IS-LM ganha o gráfico OA-DA: oferta agregada keynesiana, do Blanchard (com ajuste de expectativas até o médio prazo) ou clássica
 

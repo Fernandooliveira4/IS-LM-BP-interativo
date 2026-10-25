@@ -167,10 +167,15 @@ function drawISLM(a,b){
   lab("tis1",(b.A-b.b*7.4)/b.m,7.4,isC);lab("tlm1",(b.Mr+b.h*7.4)/b.k,7.4,lmC);
   const x0=px(a.Y),y0=py(a.r),x1=px(b.Y),y1=py(b.r),mv=isC||lmC;
   $("e0").setAttribute("cx",x0);$("e0").setAttribute("cy",y0);
-  $("te0").setAttribute("x",x0-8);$("te0").setAttribute("y",y0+16);
+  // rótulos de E0 e E1 abertos para lados opostos, longe do outro ponto
+  const L1=x1<x0-1,D1=y1>y0+1;
+  $("te0").setAttribute("x",L1?x0+8:x0-8);$("te0").setAttribute("y",D1?y0-8:y0+16);$("te0").setAttribute("text-anchor",L1?"start":"end");
   $("e1").setAttribute("cx",x1);$("e1").setAttribute("cy",y1);
-  $("te1").setAttribute("x",x1+8);$("te1").setAttribute("y",y1-8);
-  $("e1").style.display=$("te1").style.display=mv?"":"none";
+  $("te1").setAttribute("x",L1?x1-8:x1+8);$("te1").setAttribute("y",D1?y1+16:y1-8);$("te1").setAttribute("text-anchor",L1?"end":"start");
+  // pontos fora da área do gráfico não são desenhados
+  const vis=(x,y)=>x>=X0&&x<=X1&&y>=T0&&y<=B0;
+  $("e0").style.display=$("te0").style.display=vis(x0,y0)?"":"none";
+  $("e1").style.display=$("te1").style.display=mv&&vis(x1,y1)?"":"none";
   const dI=(b.A-5*b.b)/b.m-(a.A-5*a.b)/a.m,dL=(b.Mr+5*b.h)/b.k-(a.Mr+5*a.h)/a.k;
   return `<p>${mov(dI,"IS",Math.abs(b.m-a.m)>1e-9)} · ${mov(dL,"LM",b.k!==a.k)}</p>`;
 }
@@ -200,18 +205,23 @@ function drawOADA(a,b,mode){
   s+=`</g>`;
   // rótulos: DA no primeiro ponto visível (alto, à esquerda), OA no último
   const first=c=>c.find(([Y,P])=>ins(Y,P)),last=c=>[...c].reverse().find(([Y,P])=>ins(Y,P));
-  const tx=(q,t,dx,dy,an="start")=>q?`<text x="${px(q[0])+dx}" y="${Math.max(T2+12,Math.min(B2-4,qy(q[1])+dy))}" text-anchor="${an}">${t}</text>`:"";
+  const tx=(q,t,dx,dy,an="start")=>q&&ins(q[0],q[1])?`<text x="${px(q[0])+dx}" y="${Math.max(T2+12,Math.min(B2-4,qy(q[1])+dy))}" text-anchor="${an}">${t}</text>`:"";
   s+=tx(first(da1),chD?"DA′":"DA",8,6);
   const bot=PMIN+.04*(PMAX-PMIN);
-  s+=mode=="cla"?tx([b.Yn,bot],chS?"OA′ (vertical em Yₙ)":"OA (vertical em Yₙ)",6,0):tx(last(oa1),chS?"OA′":"OA",-4,mode=="key"?-6:-8,"end");
-  if(mode!="cla")s+=tx([b.Yn,bot],"Yₙ: OA de médio prazo",6,0);
+  s+=mode=="cla"?tx([b.Yn,bot],chS?"OA′ (vertical em Yₙ)":"OA (vertical em Yₙ)",px(b.Yn)>X1-150?-6:6,0,px(b.Yn)>X1-150?"end":"start"):tx(last(oa1),chS?"OA′":"OA",-4,mode=="key"?-6:-8,"end");
+  const nr=px(b.Yn)>X1-170;
+  if(mode!="cla")s+=tx([b.Yn,bot],"Yₙ: OA de médio prazo",nr?-6:6,0,nr?"end":"start");
   // pontos: partida, trajetória e médio prazo
   const moved=Math.abs(a.Y-b.Y)>.5||Math.abs(a.P-b.P)>5e-4;
   const dot=(Y,P,cls,r)=>ins(Y,P)?`<circle cx="${px(Y)}" cy="${qy(P)}" r="${r}" class="${cls}"/>`:"";
-  if(mode=="bla"&&fin(b.PMR)&&Math.abs(traj.at(-1).Y-b.Yn)>.5)s+=dot(b.Yn,b.PMR,"pm",7)+tx([b.Yn,b.PMR],"médio prazo",-11,-8,"end");
-  s+=dot(a.Y,a.P,"p0",4)+tx([a.Y,a.P],"E0",-8,16,"end");
-  traj.forEach((q,i)=>{const lastp=i==traj.length-1;if(!moved&&traj.length==1)return;s+=dot(q.Y,q.P,lastp?"p1":"p1",lastp?4.5:2.5)});
-  if(moved||traj.length>1){s+=tx([traj[0].Y,traj[0].P],"E1",8,-8);if(traj.length>1)s+=tx([traj.at(-1).Y,traj.at(-1).P],`t = ${traj.length}`,8,-8)}
+  if(mode=="bla"&&fin(b.PMR)&&Math.abs(traj.at(-1).Y-b.Yn)>.5)s+=dot(b.Yn,b.PMR,"pm",7)+// "médio prazo" do lado oposto ao rótulo "t = n" (que fica do lado contrário ao de E1)
+    ((px(traj[0].Y)<px(a.Y)-1?px(b.Yn)>X0+100:px(b.Yn)>X1-100)?tx([b.Yn,b.PMR],"médio prazo",-11,-8,"end"):tx([b.Yn,b.PMR],"médio prazo",11,-8));
+  // rótulos de E0 e E1 abertos para lados opostos; "t = n" do lado para onde a trajetória anda
+  const e1=traj[0],sx=(Y,P)=>[px(Y),qy(P)],[ax,ay]=sx(a.Y,a.P),[bx,by]=sx(e1.Y,e1.P),L1=bx<ax-1,D1=by>ay+1;
+  s+=dot(a.Y,a.P,"p0",4)+tx([a.Y,a.P],"E0",L1?8:-8,D1?-8:16,L1?"start":"end");
+  traj.forEach((q,i)=>{const lastp=i==traj.length-1;if(!moved&&traj.length==1)return;s+=dot(q.Y,q.P,"p1",lastp?4.5:2.5)});
+  if(moved||traj.length>1){s+=tx([e1.Y,e1.P],"E1",L1?-8:8,D1?16:-8,L1?"end":"start");
+    if(traj.length>1){const z=traj.at(-1),[zx,zy]=sx(z.Y,z.P);if(Math.hypot(zx-bx,zy-by)>16)s+=tx([z.Y,z.P],`t = ${traj.length}`,L1?10:-10,zy>by?16:-8,L1?"start":"end")}}
   $("sv2").innerHTML=s;
 }
 
