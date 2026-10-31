@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="author" content="Fernando Almeida Sousa Oliveira">
-<title>IS-LM interativo</title>
+<title>IS-LM, OA-DA e IS-LM-PC</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%235b4fc7'/><text x='16' y='21.5' text-anchor='middle' font-family='Segoe UI,system-ui,sans-serif' font-size='15' font-weight='700' fill='%23fff'>IS</text></svg>">
 <style>
 :root{--bg:#fbfbf9;--fg:#1f2328;--mut:#5f6670;--line:#d8dbe0;--is:#5b4fc7;--lm:#c4491f;--oa:#17805a;--card:#fff;--sel:#eceaf9}
@@ -48,6 +48,8 @@ svg text{fill:var(--fg);font-size:13px}
 #e0,.p0{fill:var(--card);stroke:var(--mut);stroke-width:1.5}
 #e1,.p1{fill:var(--fg)}
 .pm{fill:none;stroke:var(--fg);stroke-width:1.5}
+.f-oa{fill:var(--oa)}.f-lm{fill:var(--lm)}.f-is{fill:var(--is)}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
 .pgbar{max-width:1080px;margin:0 auto;padding:16px 16px 0}
 .pgbar .seg{max-width:260px;margin-left:auto}
 .pgbar+main{padding-top:12px}
@@ -75,10 +77,10 @@ svg text{fill:var(--fg);font-size:13px}
 </div></div>
 <main id="sim">
 <section>
-<h1>IS-LM e OA-DA</h1>
-<p>Mexa nos controles. As curvas tracejadas são o ponto de partida e as sólidas, o resultado.</p>
+<h1 id="ttl">IS-LM e OA-DA</h1>
+<p id="hint">Mexa nos controles. As curvas tracejadas são o ponto de partida e as sólidas, o resultado.</p>
 <div class="card" id="res"></div>
-<p class="gt">Mercado de bens e mercado monetário (IS-LM)</p>
+<p class="gt" id="gt1">Mercado de bens e mercado monetário (IS-LM)</p>
 <svg viewBox="0 0 680 364" width="100%" role="img" aria-label="Gráfico IS-LM com renda Y no eixo horizontal e juros r no eixo vertical">
 <defs><clipPath id="c"><rect x="60" y="20" width="590" height="300"/></clipPath></defs>
 <g id="ticks"></g>
@@ -95,10 +97,20 @@ svg text{fill:var(--fg);font-size:13px}
 <circle id="e0" r="4"/><circle id="e1" r="4.5"/>
 <text id="te0" text-anchor="end">E0</text><text id="te1">E1</text>
 </svg>
-<p class="gt">Oferta e demanda agregadas (OA-DA)</p>
+<p class="gt" id="gt2">Oferta e demanda agregadas (OA-DA)</p>
 <svg id="sv2" viewBox="0 0 680 300" width="100%" role="img" aria-label="Gráfico OA-DA com renda Y no eixo horizontal e nível de preços P no eixo vertical"></svg>
+<div id="tbox" hidden>
+<p class="gt">Trajetória no tempo</p>
+<svg id="sv3" viewBox="0 0 680 340" width="100%" role="img" aria-label="Inflação, inflação esperada, juro real e hiato do produto período a período"></svg>
+</div>
 </section>
 <aside>
+<h2 id="h_low">Gráfico de baixo</h2>
+<div class="seg" role="radiogroup" aria-labelledby="h_low">
+<label><input type="radio" name="low" value="oada" checked>OA-DA (preços)</label>
+<label><input type="radio" name="low" value="pc">IS-LM-PC (inflação)</label>
+</div>
+<div id="oabox">
 <h2 id="h_oa">Curva de oferta agregada (OA)</h2>
 <div class="seg" role="radiogroup" aria-labelledby="h_oa">
 <label><input type="radio" name="oa" value="key">Keynesiana</label>
@@ -106,9 +118,18 @@ svg text{fill:var(--fg);font-size:13px}
 <label><input type="radio" name="oa" value="cla">Clássica</label>
 </div>
 <p class="note" id="oanote"></p>
+</div>
+<p class="note" id="pcnote" hidden>O banco central escolhe o juro real r, e a LM é horizontal nessa taxa. A curva de Phillips (PC) dá a inflação: π = πᵉ + (α/L)(Y − Yₙ), com πᵉ = (1 − θ)·π̄ + θ·π₋₁ (Blanchard, Macroeconomia, 7ª ed.).</p>
 <div id="dyn" style="margin-top:10px">
-<div style="display:flex;gap:8px;flex-wrap:wrap"><button id="step">Avançar um período</button><button id="mrun">Ir ao médio prazo</button></div>
+<div class="btns"><button id="step">Avançar um período</button><button id="mrun">Ir ao médio prazo</button></div>
 <p class="note" id="dyninfo"></p>
+</div>
+<div id="pdyn" style="margin-top:10px" hidden>
+<div class="btns"><button id="pstep">Avançar um período</button><button id="p10">Avançar 10 períodos</button><button id="bcn">BC leva r ao juro natural</button></div>
+<p class="note" id="pinfo"></p>
+<h2 id="h_shk">Choques prontos</h2>
+<div class="btns" role="group" aria-labelledby="h_shk"><button id="s_fis">Consolidação fiscal</button><button id="s_oil">Alta do petróleo</button><button id="s_anc">Desancoragem das expectativas</button></div>
+<p class="note" id="shknote"></p>
 </div>
 <div id="ctl"></div>
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px">
@@ -118,8 +139,8 @@ svg text{fill:var(--fg);font-size:13px}
 </aside>
 </main>
 <article id="teo" class="teo" hidden>
-<h1>Teoria: IS-LM e OA-DA</h1>
-<p class="lead">O modelo IS-LM explica como a renda e a taxa de juros se determinam no curto prazo, com o nível de preços dado e a produção acompanhando a demanda. A OA-DA acrescenta o nível de preços: mostra como a economia reage a choques no curto prazo e como volta ao produto natural no médio prazo.</p>
+<h1>Teoria: IS-LM, OA-DA e IS-LM-PC</h1>
+<p class="lead">O modelo IS-LM explica como a renda e a taxa de juros se determinam no curto prazo, com o nível de preços dado e a produção acompanhando a demanda. A OA-DA acrescenta o nível de preços: mostra como a economia reage a choques no curto prazo e como volta ao produto natural no médio prazo. A IS-LM-PC troca o nível de preços pela inflação: o banco central escolhe a taxa de juros, e a curva de Phillips mostra como o hiato do produto mexe na inflação.</p>
 
 <h2>Ideia central</h2>
 <p>No curto prazo, a produção é determinada pela demanda. A curva IS reúne as combinações de renda e juros que equilibram o mercado de bens: juros mais altos reduzem o investimento e, pelo multiplicador, a renda. A curva LM reúne as combinações que equilibram o mercado monetário: com a oferta de moeda dada, uma renda maior aumenta a demanda por moeda e exige juros mais altos. O cruzamento das duas dá a renda e os juros de equilíbrio para um nível de preços dado.</p>
@@ -176,18 +197,42 @@ svg text{fill:var(--fg);font-size:13px}
 <li><b>Casos extremos da IS-LM.</b> Com h grande, a LM fica quase horizontal e a política monetária perde força (armadilha da liquidez). Com b pequeno, a IS fica quase vertical: a política fiscal quase não desloca investimento, e a monetária perde força.</li>
 </ul>
 
+<h2>IS-LM-PC: juros e inflação</h2>
+<p>A partir da 7ª edição, o Blanchard substitui a OA-DA pela IS-LM-PC, com duas mudanças. O banco central passa a escolher a taxa de juros, e não a quantidade de moeda. E a oferta agregada é escrita em termos de inflação, e não do nível de preços. O modelo explica por que a inflação sobe quando a economia opera acima do produto natural e o que o banco central precisa fazer para estabilizá-la.</p>
+<div class="eq">
+<div>IS: Y = c0 + c1·(Y − T) + I0 − b·r + G</div>
+<div>LM: r escolhido pelo banco central <span>reta horizontal</span></div>
+<div>PC: π = πᵉ + (α/L)·(Y − Yₙ)</div>
+<div>πᵉ = (1 − θ)·π̄ + θ·π₋₁ <span>expectativas</span></div>
+<div>rₙ = (A − (1 − c1)·Yₙ) / b <span>juro natural</span></div>
+</div>
+<p>A curva de Phillips vem da mesma fixação de salários e preços da OA: com o desemprego abaixo do natural, os salários sobem mais do que o esperado, e as empresas repassam a alta. Escrita com a inflação, ela diz que π supera πᵉ quando Y &gt; Yₙ. O parâmetro θ mede o peso da inflação passada nas expectativas. Com θ = 0, as expectativas ficam ancoradas em π̄. Com θ = 1, πᵉ = π₋₁, e a curva liga o hiato do produto à variação da inflação: π − π₋₁ = (α/L)·(Y − Yₙ). O juro natural rₙ é o juro real que leva a renda ao produto natural. O simulador usa o mesmo Yₙ da OA; a forma linear do Blanchard dá uₙ ≈ (μ + z)/α.</p>
+<h3>Curto e médio prazo</h3>
+<p>No curto prazo, o banco central escolhe r, a IS dá a renda e a PC dá a inflação. Se r fica abaixo de rₙ, a renda supera Yₙ e a inflação fica acima da esperada. Com θ = 1, o caso do capítulo 9 do Blanchard, a inflação só para de mudar quando Y = Yₙ, o que exige r = rₙ. Como rₙ depende da IS e do mercado de trabalho, e não da política monetária, no médio prazo a renda e o juro real voltam ao natural. A política monetária define apenas em que inflação a economia se estabiliza.</p>
+<h3>Resultados</h3>
+<ul>
+<li><b>Hiato e aceleração.</b> Com θ = 1, cada período com Y acima de Yₙ eleva a inflação em (α/L)·(Y − Yₙ).<span class="sim">No simulador: IS-LM-PC, reduza r e clique em “Avançar 10 períodos”.</span></li>
+<li><b>Neutralidade no médio prazo.</b> Depois do ajuste, Y = Yₙ e r = rₙ, qualquer que tenha sido a política monetária no caminho. O que muda é o nível da inflação: se o banco central demora a reagir, ela se estabiliza mais alta.</li>
+<li><b>Ancoragem.</b> Com θ = 0, um hiato positivo eleva a inflação uma vez, mas ela não acelera. Quando as expectativas se desancoram, o mesmo hiato passa a gerar inflação crescente.<span class="sim">No simulador: botão “Desancoragem das expectativas”.</span></li>
+<li><b>Consolidação fiscal.</b> Um corte de G desloca a IS para a esquerda e reduz o juro natural. Se o banco central baixar r junto, a renda fica em Yₙ, e a demanda muda de composição: menos gasto público e mais investimento.<span class="sim">No simulador: botão “Consolidação fiscal” e depois “BC leva r ao juro natural”.</span></li>
+<li><b>Alta do petróleo.</b> Um markup maior eleva o desemprego natural e reduz Yₙ. Com r parado, a renda fica acima do novo Yₙ e a inflação sobe; o banco central precisa subir r, e a renda cai de forma permanente.<span class="sim">No simulador: botão “Alta do petróleo”.</span></li>
+</ul>
+
 <h2>Limitações</h2>
 <ul>
 <li>O modelo é estático: não há acumulação de capital nem expectativas sobre o futuro, e o investimento depende só dos juros correntes.</li>
 <li>Os juros nominal e real são iguais. Com inflação esperada, o investimento depende do juro real, e a armadilha da liquidez aparece no limite zero do juro nominal.</li>
-<li>Os bancos centrais de hoje fixam a taxa de juros, e não a quantidade de moeda. Por isso, a partir da 7ª edição, o Blanchard troca a LM por uma reta horizontal na taxa escolhida pelo banco central.</li>
+<li>Os bancos centrais de hoje fixam a taxa de juros, e não a quantidade de moeda. Por isso, a partir da 7ª edição, o Blanchard troca a LM por uma reta horizontal na taxa escolhida pelo banco central, como na IS-LM-PC do simulador.</li>
 <li>Com expectativas adaptativas, o ajuste é lento e mecânico. Com expectativas racionais, uma política anunciada pode mudar Pᵉ na hora.</li>
-<li>A OA-DA trata o nível de preços, e não a inflação. Para a inflação persistente, o Blanchard usa a curva de Phillips.</li>
+<li>A OA-DA trata o nível de preços, e não a inflação. Para a inflação persistente, o Blanchard usa a curva de Phillips, a base da IS-LM-PC.</li>
+<li>Na IS-LM-PC, o simulador deixa o banco central escolher direto o juro real. Na prática, ele fixa o juro nominal i = r + πᵉ, que não pode ficar muito abaixo de zero. O simulador não trata esse limite, que o Blanchard usa para explicar a espiral deflacionária.</li>
+<li>As expectativas da IS-LM-PC olham só para trás (π₋₁ e π̄). Um banco central com credibilidade pode baixar a inflação mudando as expectativas, com menos desemprego.</li>
 </ul>
 
 <h2>Referências</h2>
 <ul class="ref">
 <li>Blanchard, O. <i>Macroeconomia</i>. 5. ed. São Paulo: Pearson Prentice Hall, 2011. Caps. 3 a 7: mercado de bens, mercados financeiros, IS-LM, mercado de trabalho e o modelo OA-DA. A partir da 7ª edição, a OA-DA dá lugar ao modelo IS-LM-PC.</li>
+<li>Blanchard, O. <i>Macroeconomia</i>. 7. ed. São Paulo: Pearson, 2017. Cap. 8 (curva de Phillips, taxa natural de desemprego e inflação) e cap. 9 (do curto ao médio prazo: o modelo IS-LM-PC).</li>
 <li>Hicks, J. R. Mr. Keynes and the “Classics”: a suggested interpretation. <i>Econometrica</i>, v. 5, n. 2, p. 147–159, 1937.</li>
 </ul>
 </article>
@@ -200,7 +245,12 @@ const CFG=[["Mercado de bens (IS)"],
 ["c1","Propensão marginal a consumir (c1)",0.3,0.9,0.05,0.6],
 ["I0","Investimento autônomo (I0)",100,400,5,260],
 ["b","Sensibilidade do investimento aos juros (b)",5,50,1,20],
-["Mercado monetário (LM)"],
+["Banco central e inflação (PC)","pc"],
+["r","Juro real definido pelo BC (r)",0,10,0.001,5],
+["th","Peso da inflação passada nas expectativas (θ)",0,1,0.05,1],
+["pib","Inflação esperada ancorada (π̄)",0,10,0.1,2],
+["pi1","Inflação do período anterior (π₋₁)",-20,40,0.001,2],
+["Mercado monetário (LM)","lm"],
 ["M","Oferta de moeda (M)",100,500,5,250],
 ["k","Demanda por moeda: sensibilidade à renda (k)",0.2,1,0.05,0.5],
 ["h","Demanda por moeda: sensibilidade aos juros (h)",10,100,1,50],
@@ -215,11 +265,12 @@ const NOTE={key:"OA horizontal: os preços ficam fixos em P e a renda é determi
   bla:"OA de curto prazo: P = Pᵉ(1+μ)(1 − αu + z), com u = 1 − Y/L. A OA de médio prazo é vertical no produto natural Yₙ, onde P = Pᵉ (Blanchard, Macroeconomia).",
   cla:"OA vertical em Yₙ: preços e salários totalmente flexíveis. A demanda só muda P e r, nunca a renda."};
 const $=i=>document.getElementById(i);
-const def={},ids=[],LBL={};let html="";
+// cabeçalhos: [título, grupo]; o grupo "lm" só aparece com a OA-DA e o "pc", só com a IS-LM-PC
+const def={},ids=[],LBL={};let html="",grp="";
 for(const c of CFG){
-  if(c.length==1){html+=`<h2>${c[0]}</h2>`;continue}
+  if(c.length<=2){grp=c[1]||"";html+=`<h2 data-g="${grp}">${c[0]}</h2>`;continue}
   const [id,l,mn,mx,st,d]=c;def[id]=d;ids.push(id);LBL[id]=l;
-  html+=`<div class="row" id="r_${id}"><label for="${id}" id="l_${id}">${l}</label><output id="o_${id}"></output><input type="range" id="${id}" min="${mn}" max="${mx}" step="${st}" value="${d}"></div>`;
+  html+=`<div class="row" id="r_${id}" data-g="${grp}"><label for="${id}" id="l_${id}">${l}</label><output id="o_${id}"></output><input type="range" id="${id}" min="${mn}" max="${mx}" step="${st}" value="${d}"></div>`;
 }
 $("ctl").innerHTML=html;
 const X0=60,X1=650,T0=20,B0=320,YMIN=300,YMAX=1700,RMAX=10;
@@ -247,20 +298,36 @@ const calc=(p,mode)=>{const A=p.c0-p.c1*p.Tx+p.I0+p.G,m=1-p.c1,D=m*p.h+p.b*p.k;
   const Mr=p.M/P,r=(p.k*Y-Mr)/p.h;
   return{A,m,Mr,r,Y,P,b:p.b,k:p.k,h:p.h,D,Yn,un,u:1-Y/p.L,PMR:PAD(Yn),rMR:(A-m*Yn)/p.b,AD,PAD,PAS,Pe:p.Pe,ok:Number.isFinite(P)&&P>0&&Y>0}};
 
+// ---------- IS-LM-PC (Blanchard, 7ª ed., caps. 8 e 9) ----------
+// IS: Y = (A − b·r)/(1 − c1), com o juro real r escolhido pelo BC (LM horizontal).
+// PC: π = πᵉ + (α/L)(Y − Yₙ), com πᵉ = (1 − θ)·π̄ + θ·π₋₁ (π em %). Yₙ é o mesmo da OA do Blanchard.
+// Juro natural rₙ: o r que leva a IS a Yₙ. Com r parado e θ < 1, π converge para π* = π̄ + (α/L)(Y − Yₙ)/(1 − θ).
+const calcPC=p=>{const A=p.c0-p.c1*p.Tx+p.I0+p.G,m=1-p.c1,un=(1+p.z-1/(1+p.mu))/p.al,Yn=p.L*(1-un);
+  const Y=(A-p.b*p.r)/m,gap=Y-Yn,kap=100*p.al/p.L,pie=(1-p.th)*p.pib+p.th*p.pi1,pi=pie+kap*gap;
+  return{A,m,b:p.b,k:0,h:1,Mr:-p.r,r:p.r,Y,Yn,un,u:1-Y/p.L,rn:(A-m*Yn)/p.b,gap,kap,pie,pi,th:p.th,pib:p.pib,
+    piStar:p.th<1?p.pib+kap*gap/(1-p.th):NaN,ok:Y>0&&Yn>0}};
+let ptraj=[];
+
 // ---------- gráfico IS-LM ----------
 const seg=(id,f)=>{const e=$(id);e.setAttribute("x1",px(YMIN));e.setAttribute("y1",py(f(YMIN)));e.setAttribute("x2",px(YMAX));e.setAttribute("y2",py(f(YMAX)))};
 const lab=(id,Y,r,show)=>{const e=$(id),x=px(Y);e.setAttribute("x",x+6);e.setAttribute("y",py(r)+4);e.style.display=show&&x>X0+6&&x<X1-28?"":"none"};
 const fy=v=>Math.round(v).toLocaleString("pt-BR"),fr=v=>v.toFixed(1).replace(".",",")+"%",fp=v=>v.toFixed(2).replace(".",","),fu=v=>(v*100).toFixed(1).replace(".",",")+"%";
 const dir=(d,tol)=>Math.abs(d)<tol?"não muda":d>0?"sobe":"cai";
 const mov=(d,n,g)=>`${n}: ${Math.abs(d)<.5?"sem mudança":d>0?"vai para a direita":"vai para a esquerda"}${g?" e gira":""}`;
-function drawISLM(a,b){
+// pc: LM horizontal no juro escolhido pelo BC (k = 0, h = 1, Mr = −r)
+function drawISLM(a,b,pc){
   seg("is0",Y=>(a.A-a.m*Y)/a.b);seg("lm0",Y=>(a.k*Y-a.Mr)/a.h);
   seg("is1",Y=>(b.A-b.m*Y)/b.b);seg("lm1",Y=>(b.k*Y-b.Mr)/b.h);
   const isC=Math.abs(b.A-a.A)>1e-9||Math.abs(b.m-a.m)>1e-9||b.b!==a.b;
   const lmC=Math.abs(b.Mr-a.Mr)>1e-9||b.k!==a.k||b.h!==a.h;
   $("is1").style.display=isC?"":"none";$("lm1").style.display=lmC?"":"none";
-  lab("tis0",(a.A-a.b*9.2)/a.m,9.2,true);lab("tlm0",(a.Mr+a.h*9.2)/a.k,9.2,true);
-  lab("tis1",(b.A-b.b*7.4)/b.m,7.4,isC);lab("tlm1",(b.Mr+b.h*7.4)/b.k,7.4,lmC);
+  lab("tis0",(a.A-a.b*9.2)/a.m,9.2,true);lab("tis1",(b.A-b.b*7.4)/b.m,7.4,isC);
+  if(pc){// rótulos da LM na ponta direita, um acima e outro abaixo da linha quando as duas aparecem
+    const up=b.r>=a.r;
+    for(const[id,c,show,above]of[["tlm0",a,true,!lmC||!up],["tlm1",b,lmC,up]]){const e=$(id);
+      e.setAttribute("x",X1-4);e.setAttribute("y",Math.max(T0+12,Math.min(B0-4,py(c.r)+(above?-6:15))));e.setAttribute("text-anchor","end");e.style.display=show&&c.r>=0&&c.r<=RMAX?"":"none"}}
+  else{$("tlm0").removeAttribute("text-anchor");$("tlm1").removeAttribute("text-anchor");
+    lab("tlm0",(a.Mr+a.h*9.2)/a.k,9.2,true);lab("tlm1",(b.Mr+b.h*7.4)/b.k,7.4,lmC)}
   const x0=px(a.Y),y0=py(a.r),x1=px(b.Y),y1=py(b.r),mv=isC||lmC;
   $("e0").setAttribute("cx",x0);$("e0").setAttribute("cy",y0);
   // rótulos de E0 e E1 abertos para lados opostos, longe do outro ponto
@@ -273,6 +340,7 @@ function drawISLM(a,b){
   $("e0").style.display=$("te0").style.display=vis(x0,y0)?"":"none";
   $("e1").style.display=$("te1").style.display=mv&&vis(x1,y1)?"":"none";
   const dI=(b.A-5*b.b)/b.m-(a.A-5*a.b)/a.m,dL=(b.Mr+5*b.h)/b.k-(a.Mr+5*a.h)/a.k;
+  if(pc)return `<p>${mov(dI,"IS",Math.abs(b.m-a.m)>1e-9)} · LM: ${Math.abs(b.r-a.r)<.005?"sem mudança":b.r>a.r?"sobe (o BC aumentou r)":"desce (o BC reduziu r)"}</p>`;
   return `<p>${mov(dI,"IS",Math.abs(b.m-a.m)>1e-9)} · ${mov(dL,"LM",b.k!==a.k)}</p>`;
 }
 
@@ -321,9 +389,122 @@ function drawOADA(a,b,mode){
   $("sv2").innerHTML=s;
 }
 
+// ---------- gráficos da IS-LM-PC ----------
+const fpi=v=>fr(Math.abs(v)<.05?0:v),fpa=v=>Math.abs(v).toFixed(1).replace(".",",")+" p.p.",fg=v=>(v<0?"−":"+")+fy(Math.abs(v));
+// eixo com passo "redondo"; span garante uma largura mínima em torno dos pontos
+const nice=(lo,hi,n=5)=>{const s0=(hi-lo)/n,pw=Math.pow(10,Math.floor(Math.log10(s0))),mm=s0/pw,st=(mm<=1?1:mm<=2?2:mm<=2.5?2.5:mm<=5?5:10)*pw;
+  return{MIN:Math.floor(lo/st+1e-9)*st,MAX:Math.ceil(hi/st-1e-9)*st,st}};
+const span=(lo,hi,w)=>{const c=(lo+hi)/2,h=Math.max((hi-lo)/2,w/2);return[c-h,c+h]};
+const tick=(v,st)=>(Math.abs(v)<1e-9?0:v).toLocaleString("pt-BR",{maximumFractionDigits:Number.isInteger(+st.toFixed(6))?0:1});
+function drawPC(a,b){
+  const pts=[a.pi,b.pi,a.pie,b.pie,b.pib,...ptraj.map(q=>q.pi)];
+  const[lo,hi]=span(Math.min(...pts)-1,Math.max(...pts)+1,16),{MIN,MAX,st}=nice(lo,hi);
+  const qy=v=>B2-(v-MIN)/(MAX-MIN)*(B2-T2),ins=(Y,v)=>Y>=YMIN&&Y<=YMAX&&v>=MIN&&v<=MAX;
+  const line=(Y1,v1,Y2,v2,cls)=>`<line x1="${px(Y1).toFixed(1)}" y1="${qy(v1).toFixed(1)}" x2="${px(Y2).toFixed(1)}" y2="${qy(v2).toFixed(1)}" class="${cls}"/>`;
+  const f0=Y=>a.pie+a.kap*(Y-a.Yn),f1=Y=>b.pie+b.kap*(Y-b.Yn);
+  const chN=Math.abs(a.Yn-b.Yn)>1e-9,chP=chN||Math.abs(a.pie-b.pie)>1e-9||Math.abs(a.kap-b.kap)>1e-12;
+  let s=`<defs><clipPath id="c2"><rect x="${X0}" y="${T2}" width="${X1-X0}" height="${B2-T2}"/></clipPath></defs>`;
+  for(let v=MIN;v<=MAX+1e-9;v+=st)s+=`<line x1="${X0}" x2="${X1}" y1="${qy(v)}" y2="${qy(v)}" class="grid"/><text x="52" y="${qy(v)+4}" text-anchor="end">${tick(v,st)}</text>`;
+  for(let y=400;y<=1600;y+=200)s+=`<text x="${px(y)}" y="${B2+18}" text-anchor="middle">${y}</text>`;
+  s+=`<line x1="${X0}" y1="${B2}" x2="${X1}" y2="${B2}" class="ax"/><line x1="${X0}" y1="${T2}" x2="${X0}" y2="${B2}" class="ax"/><text x="${X1}" y="${B2+38}" text-anchor="end">Y (renda)</text><text x="${X0+4}" y="14">π (inflação, %)</text>`;
+  s+=`<g clip-path="url(#c2)">`;
+  if(MIN<0&&MAX>0)s+=line(YMIN,0,YMAX,0,"ax");
+  s+=line(YMIN,b.pib,YMAX,b.pib,"drop");
+  if(chN)s+=line(a.Yn,MIN-99,a.Yn,MAX+99,"mp d");
+  s+=line(b.Yn,MIN-99,b.Yn,MAX+99,"mp");
+  if(chP)s+=line(YMIN,f0(YMIN),YMAX,f0(YMAX),"oa d");
+  s+=line(YMIN,f1(YMIN),YMAX,f1(YMAX),"oa");
+  if(ptraj.length>1)s+=`<path d="${ptraj.map((q,i)=>(i?"L":"M")+px(q.Y).toFixed(1)+","+qy(q.pi).toFixed(1)).join("")}" class="tr" fill="none"/>`;
+  s+=`</g>`;
+  const box=[],rect=(x,y,w,an)=>{const x0=an=="end"?x-w:an=="middle"?x-w/2:x;return[x0,y-12,x0+w,y+3]};
+  const tx=(Y,v,t,dx,dy,an="start")=>{if(!ins(Y,v))return"";const x=px(Y)+dx,y=Math.max(T2+12,Math.min(B2-4,qy(v)+dy));box.push(rect(x,y,7.5*t.length,an));return`<text x="${x}" y="${y}" text-anchor="${an}">${t}</text>`};
+  // PC: rótulo onde a reta sai pelo topo (ou pela direita)
+  const Yt=b.Yn+(MAX-b.pie)/b.kap,lp=chP?"PC′":"PC";
+  s+=Yt<YMAX-20?tx(Yt,MAX,lp,8,14):tx(YMAX,f1(YMAX),lp,-8,-8,"end");
+  if(b.pib>=MIN&&b.pib<=MAX)s+=`<text x="${X0+6}" y="${qy(b.pib)-5}">π̄</text>`;
+  // pontos: partida, trajetória e rótulos abertos para lados opostos
+  const dot=(Y,v,cls,r)=>ins(Y,v)?`<circle cx="${px(Y)}" cy="${qy(v)}" r="${r}" class="${cls}"/>`:"";
+  const moved=Math.abs(a.Y-b.Y)>.5||Math.abs(a.pi-b.pi)>.005,e1=ptraj[0];
+  const ax=px(a.Y),ay=qy(a.pi),bx=px(e1.Y),by=qy(e1.pi),L1=bx<ax-1,D1=by>ay+1;
+  s+=dot(a.Y,a.pi,"p0",4)+tx(a.Y,a.pi,"E0",L1?8:-8,D1?-8:16,L1?"start":"end");
+  ptraj.forEach((q,i)=>{if(!moved&&ptraj.length==1)return;s+=dot(q.Y,q.pi,"p1",i==ptraj.length-1?4.5:2.5)});
+  if(moved||ptraj.length>1){s+=tx(e1.Y,e1.pi,"E1",L1?-8:8,D1?16:-8,L1?"end":"start");
+    if(ptraj.length>1){const z=ptraj.at(-1),zx=px(z.Y),zy=qy(z.pi);if(Math.hypot(zx-bx,zy-by)>16)s+=tx(z.Y,z.pi,`t = ${ptraj.length}`,L1?10:-10,zy>by?16:-8,L1?"start":"end")}}
+  // rótulo de Yₙ: primeira posição (topo ou base, à direita ou à esquerda) longe dos pontos e do rótulo da PC
+  for(const q of[a,...ptraj])if(ins(q.Y,q.pi))box.push([px(q.Y)-6,qy(q.pi)-6,px(q.Y)+6,qy(q.pi)+6]);
+  const xn=px(b.Yn),hit=r=>box.some(o=>r[0]<o[2]+2&&r[2]>o[0]-2&&r[1]<o[3]+2&&r[3]>o[1]-2);
+  const cand=[];for(const y of[T2+14,B2-6,T2+(B2-T2)*.35,T2+(B2-T2)*.65])for(const sd of[1,-1])if(sd>0?xn<X1-24:xn>X0+24)cand.push([y,sd]);
+  const [yy,sd]=cand.find(([y,sd])=>!hit(rect(xn+sd*6,y,18,sd>0?"start":"end")))||cand[0]||[T2+14,1];
+  if(b.Yn>=YMIN&&b.Yn<=YMAX)s+=`<text x="${xn+sd*6}" y="${yy}" text-anchor="${sd>0?"start":"end"}">Yₙ</text>`;
+  $("sv2").innerHTML=s;
+}
+// trajetória no tempo: π, πᵉ e r em cima; hiato do produto embaixo
+function drawTime(){
+  const n=ptraj.length,N=Math.max(10,n),tx=t=>X0+(t-1)/(N-1)*(X1-X0),A1=20,B1=170,A2=220,B3=300;
+  const v1=ptraj.flatMap(q=>[q.pi,q.pie,q.r]),[lo,hi]=span(Math.min(...v1)-.5,Math.max(...v1)+.5,6),g1=nice(lo,hi,4);
+  const gm=1.15*Math.max(50,...ptraj.map(q=>Math.abs(q.gap))),g2=nice(-gm,gm,4);
+  const y1=v=>B1-(v-g1.MIN)/(g1.MAX-g1.MIN)*(B1-A1),y2=v=>B3-(v-g2.MIN)/(g2.MAX-g2.MIN)*(B3-A2);
+  let s="";
+  for(let v=g1.MIN;v<=g1.MAX+1e-9;v+=g1.st)s+=`<line x1="${X0}" x2="${X1}" y1="${y1(v)}" y2="${y1(v)}" class="grid"/><text x="52" y="${y1(v)+4}" text-anchor="end">${tick(v,g1.st)}</text>`;
+  for(let v=g2.MIN;v<=g2.MAX+1e-9;v+=g2.st)s+=`<line x1="${X0}" x2="${X1}" y1="${y2(v)}" y2="${y2(v)}" class="grid"/><text x="52" y="${y2(v)+4}" text-anchor="end">${tick(v,g2.st)}</text>`;
+  s+=`<line x1="${X0}" y1="${A1}" x2="${X0}" y2="${B1}" class="ax"/><line x1="${X0}" y1="${B1}" x2="${X1}" y2="${B1}" class="ax"/>`;
+  s+=`<line x1="${X0}" y1="${A2}" x2="${X0}" y2="${B3}" class="ax"/><line x1="${X0}" y1="${y2(0)}" x2="${X1}" y2="${y2(0)}" class="ax"/>`;
+  s+=`<text x="${X0+4}" y="14">π, πᵉ e r (%)</text><text x="${X0+4}" y="${A2-8}">Hiato do produto (Y − Yₙ)</text>`;
+  const ts=Math.ceil(N/10);for(let t=1;t<=N;t+=ts)s+=`<text x="${tx(t)}" y="${B3+18}" text-anchor="middle">${t}</text>`;
+  s+=`<text x="${X1}" y="${B3+36}" text-anchor="end">período</text>`;
+  const ser=(k,yf,cls,fc,rr=3)=>(n>1?`<path d="${ptraj.map((q,i)=>(i?"L":"M")+tx(i+1).toFixed(1)+","+yf(q[k]).toFixed(1)).join("")}" class="${cls}" fill="none"/>`:"")
+    +(fc?ptraj.map((q,i)=>`<circle cx="${tx(i+1).toFixed(1)}" cy="${yf(q[k]).toFixed(1)}" r="${rr}" class="${fc}"/>`).join(""):"");
+  s+=ser("pie",y1,"oa d","f-oa",1.8)+ser("r",y1,"lm","f-lm")+ser("pi",y1,"oa","f-oa")+ser("gap",y2,"is","f-is");
+  // rótulos das séries no último período, afastados entre si
+  const z=ptraj.at(-1),L=[[y1(z.pi),"π"],[y1(z.pie),"πᵉ"],[y1(z.r),"r"]].sort((u,v)=>u[0]-v[0]);
+  for(let i=1;i<L.length;i++)L[i][0]=Math.max(L[i][0],L[i-1][0]+13);
+  const sh=Math.max(0,L.at(-1)[0]-(B1-2));L.forEach(q=>q[0]-=sh);
+  for(const[y,t]of L)s+=`<text x="${tx(n)+8}" y="${Math.max(A1+10,y)+4}">${t}</text>`;
+  $("sv3").innerHTML=s;
+}
+function renderPC(reset){
+  const cur=read(),a=calcPC(base),b=calcPC(cur),pt={Y:b.Y,pi:b.pi,pie:b.pie,r:b.r,gap:b.gap};
+  if(reset===true||!ptraj.length)ptraj=[pt];else if(reset=="redo")ptraj[ptraj.length-1]=pt;else ptraj.push(pt);
+  const isl=drawISLM(a,b,true);drawPC(a,b);drawTime();
+  $("pstep").disabled=$("p10").disabled=$("bcn").disabled=true;
+  if(!a.ok||!b.ok){$("res").innerHTML=`<p class="warn"><b>Atenção:</b> com ${b.ok?"o ponto de partida":"a configuração atual"}, a renda ou o produto natural ficam negativos; o modelo linear deixa de fazer sentido.</p>`;$("pinfo").textContent="";return}
+  let h=`<div>Renda (Y): <b>${fy(a.Y)}</b> → <b>${fy(b.Y)}</b> (${dir(b.Y-a.Y,.5)}) · natural: <b>${fy(b.Yn)}</b></div>
+<div>Juro real (r, do BC): <b>${fr(a.r)}</b> → <b>${fr(b.r)}</b> (${dir(b.r-a.r,.005)}) · natural: <b>${fr(b.rn)}</b></div>
+<div>Inflação (π): <b>${fpi(a.pi)}</b> → <b>${fpi(b.pi)}</b> (${dir(b.pi-a.pi,.05)}) · esperada: <b>${fpi(b.pie)}</b></div>
+<div>Desemprego (u): <b>${fu(a.u)}</b> → <b>${fu(b.u)}</b> · natural: <b>${fu(b.un)}</b></div>`;
+  h+=isl;
+  const gap=b.gap,d=b.pi-b.pie,th=b.th;
+  if(Math.abs(gap)<.5)h+=`<p>A renda está no produto natural (r = rₙ), então a inflação é igual à esperada: π = πᵉ = ${fpi(b.pi)}. ${th>=1?"Com θ = 1, ela fica parada nesse nível, seja ele qual for.":Math.abs(b.pie-b.pib)>.05?`Com θ < 1, as expectativas puxam a inflação de volta para a âncora π̄ = ${fpi(b.pib)}.`:"A inflação está na âncora π̄ e fica parada."}</p>`;
+  else{const up=gap>0;
+    h+=`<p>A renda está ${up?"acima":"abaixo"} do produto natural (hiato de ${fg(gap)}): o desemprego fica ${up?"abaixo":"acima"} do natural, e a inflação ${up?"supera a":"fica abaixo da"} esperada: π − πᵉ = ${up?"+":"−"}${fpa(d)}</p>`;
+    h+=th>=1?`<p>Com θ = 1, a inflação esperada é a do período anterior, então a inflação ${up?"sobe":"cai"} ${fpa(d)} a cada período enquanto o BC mantiver r ${up?"abaixo":"acima"} do juro natural. Use "Avançar um período".</p>`
+      :th<=0?`<p>Com as expectativas ancoradas (θ = 0), a inflação fica em ${fpi(b.pi)} sem acelerar enquanto o hiato durar.</p>`
+      :`<p>Com θ = ${th.toFixed(2).replace(".",",")}, se o BC deixar r parado, a inflação converge para π* = ${fpi(b.piStar)}, sem voltar a π̄.</p>`;
+    h+=`<p>Para a renda voltar a Yₙ, o BC precisa ${b.rn>b.r?"subir":"baixar"} o juro real até rₙ = ${fr(b.rn)} (botão "BC leva r ao juro natural").${th>=1?" Isso estabiliza a inflação no nível em que ela estiver, mas não a traz de volta: para isso, o BC teria de manter a renda abaixo de Yₙ por um tempo.":""}</p>`}
+  if(b.rn<0||b.rn>10)h+=`<p class="warn"><b>Atenção:</b> o juro natural (${fr(b.rn)}) está fora da faixa do controle de r (0% a 10%).</p>`;
+  if(b.Y<YMIN||b.Y>YMAX)h+=`<p class="warn"><b>Atenção:</b> a renda está fora da área dos gráficos.</p>`;
+  if(b.u<0)h+=`<p class="warn"><b>Atenção:</b> a renda passou da força de trabalho (desemprego negativo); o modelo linear deixa de fazer sentido aqui.</p>`;
+  $("res").innerHTML=h;
+  $("pinfo").textContent=`Período ${ptraj.length}: π₋₁ = ${fpi(cur.pi1)}, πᵉ = ${fpi(b.pie)}, π = ${fpi(b.pi)}.`;
+  const inR=v=>v>=+$("pi1").min&&v<=+$("pi1").max;
+  $("pstep").disabled=$("p10").disabled=!inR(b.pi);$("bcn").disabled=Math.abs(b.r-b.rn)<5e-4||b.rn<0||b.rn>10;
+}
+
+const PCT=new Set(["r","pib","pi1"]),fo=(i,v)=>i=="Pe"?v.toFixed(2):PCT.has(i)?fpi(v):i=="th"?v.toFixed(2).replace(".",","):v;
+const hOA=[...$("ctl").querySelectorAll("h2")].find(e=>e.textContent=="Oferta agregada (OA)");
 function render(reset=true){
+  const pc=rv("low")=="pc";
+  $("oabox").hidden=pc;$("pcnote").hidden=$("pdyn").hidden=$("tbox").hidden=!pc;
+  document.querySelectorAll("#ctl [data-g]").forEach(e=>e.hidden=e.dataset.g=="pc"?!pc:e.dataset.g=="lm"&&pc);
+  $("ttl").textContent=pc?"IS-LM-PC":"IS-LM e OA-DA";
+  $("hint").textContent=pc?"O banco central escolhe o juro real, e a curva de Phillips mostra a inflação. Tracejado é o ponto de partida e sólido, o resultado.":"Mexa nos controles. As curvas tracejadas são o ponto de partida e as sólidas, o resultado.";
+  $("gt1").textContent=pc?"Mercado de bens e política monetária (IS-LM, com r fixado pelo BC)":"Mercado de bens e mercado monetário (IS-LM)";
+  $("gt2").textContent=pc?"Curva de Phillips (PC)":"Oferta e demanda agregadas (OA-DA)";
+  $("sv2").setAttribute("aria-label",pc?"Curva de Phillips com renda Y no eixo horizontal e inflação π no eixo vertical":"Gráfico OA-DA com renda Y no eixo horizontal e nível de preços P no eixo vertical");
+  hOA.textContent=pc?"Mercado de trabalho (Yₙ e inclinação da PC)":"Oferta agregada (OA)";
+  if(pc){ids.forEach(i=>{$("o_"+i).textContent=fo(i,read()[i]);$("l_"+i).textContent=LBL[i]});$("r_Pe").hidden=$("dyn").hidden=true;renderPC(reset);return}
   const mode=rv("oa"),cur=read(),a=calc(base,mode),b=calc(cur,mode);
-  ids.forEach(i=>{$("o_"+i).textContent=i=="Pe"?cur[i].toFixed(2):cur[i];$("l_"+i).textContent=mode=="key"&&LBL_KEY[i]?LBL_KEY[i]:LBL[i]});
+  ids.forEach(i=>{$("o_"+i).textContent=fo(i,cur[i]);$("l_"+i).textContent=mode=="key"&&LBL_KEY[i]?LBL_KEY[i]:LBL[i]});
   $("r_Pe").hidden=mode=="cla";$("dyn").hidden=mode!="bla";$("oanote").textContent=NOTE[mode];
   if(reset||!traj.length)traj=[{Y:b.Y,P:b.P}];else traj.push({Y:b.Y,P:b.P});
   const isl=drawISLM(a,b);drawOADA(a,b,mode);
@@ -349,13 +530,26 @@ function render(reset=true){
   const canMR=mode=="bla"&&b.ok&&Number.isFinite(b.PMR)&&Math.abs(gap)>.5,inR=v=>v>=+$("Pe").min&&v<=+$("Pe").max;
   $("step").disabled=!(canMR&&inR(b.P));$("mrun").disabled=!(canMR&&inR(b.PMR));
 }
-ids.forEach(i=>$(i).addEventListener("input",()=>render()));
-document.querySelectorAll("input[name=oa]").forEach(e=>e.addEventListener("change",()=>render()));
+// na IS-LM-PC, mexer só em r é uma nova decisão do BC no período atual: a trajetória continua
+ids.forEach(i=>$(i).addEventListener("input",()=>{$("shknote").textContent="";render(i=="r"&&rv("low")=="pc"?"redo":true)}));
+document.querySelectorAll("input[name=oa],input[name=low]").forEach(e=>e.addEventListener("change",()=>{$("shknote").textContent="";render()}));
+// IS-LM-PC: o próximo período herda a inflação atual como π₋₁
+const pcStep=()=>{const b=calcPC(read()),e=$("pi1");if(!b.ok||b.pi<+e.min||b.pi>+e.max)return false;e.value=b.pi;render(false);return true};
+$("pstep").onclick=pcStep;
+$("p10").onclick=()=>{for(let i=0;i<10&&pcStep();i++);};
+$("bcn").onclick=()=>{$("r").value=Math.min(10,Math.max(0,calcPC(read()).rn));render("redo")};
+// choques prontos: o estado atual vira o ponto de partida e o choque é aplicado em cima dele
+const shock=(f,msg)=>{base=read();f();render();$("shknote").textContent=msg};
+$("s_fis").onclick=()=>shock(()=>$("G").value=Math.max(0,+$("G").value-20),"Consolidação fiscal: G cai 20. A IS vai para a esquerda e, com r parado, a renda fica abaixo de Yₙ e a inflação cai. O juro natural também cai: para a renda voltar a Yₙ, o BC precisa baixar r.");
+$("s_oil").onclick=()=>shock(()=>$("mu").value=Math.min(.4,+$("mu").value+.1),"Alta do petróleo: o markup μ sobe 0,1, o desemprego natural sobe e Yₙ cai. Com r parado, a renda fica acima do novo Yₙ e a inflação sobe; para conter a inflação, o BC precisa subir r, e a renda cai.");
+$("s_anc").onclick=()=>{const rn=calcPC(read()).rn;
+  $("th").value=0;$("pi1").value=$("pib").value;$("r").value=Math.min(10,Math.max(0,rn-.5));base=read();$("th").value=1;render();
+  $("shknote").textContent="Desancoragem: no ponto de partida as expectativas estão ancoradas (θ = 0) e o BC mantém r um pouco abaixo do juro natural, então a inflação fica acima de π̄, mas parada. Agora θ = 1: com o mesmo hiato, a inflação passa a subir a cada período. Use \"Avançar 10 períodos\"."};
 // expectativas adaptativas do Blanchard: Pᵉ do próximo período = P observado
 $("step").onclick=()=>{const b=calc(read(),"bla");$("Pe").value=b.P;render(false)};
 $("mrun").onclick=()=>{const b=calc(read(),"bla");$("Pe").value=b.PMR;render(false)};
-$("fix").onclick=()=>{base=read();render()};
-$("rst").onclick=()=>{ids.forEach(i=>$(i).value=def[i]);base={...def};render()};
+$("fix").onclick=()=>{base=read();$("shknote").textContent="";render()};
+$("rst").onclick=()=>{ids.forEach(i=>$(i).value=def[i]);base={...def};$("shknote").textContent="";render()};
 render();
 </script>
 <script>

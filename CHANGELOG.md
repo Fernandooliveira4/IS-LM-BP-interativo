@@ -1,5 +1,8 @@
 # Histórico de versões
 
+## v1.3.0 (2026-10-31)
+- IS-LM-PC no is_lm.html: seletor do gráfico de baixo (OA-DA ou IS-LM-PC), juro real escolhido pelo BC, curva de Phillips com expectativas controladas por θ, trajetória no tempo, choques prontos e seção nova na aba Teoria
+
 ## v1.2.1 (2026-10-25)
 - Conferência da teoria contra a literatura e o simulador: ajustes de redação e referências
 
